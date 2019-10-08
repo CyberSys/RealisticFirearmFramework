@@ -18,4 +18,23 @@ Const.VERBOSE = 4
 
 Const.LogLevelStrings = { [0] = "ERROR", [1] = "WARN", [2] = "INFO", [3] = "DEBUG", [4] = "VERBOSE"}
 
+--- Category Constants
+-- @section Category
+
+--- integer 1
+Const.REVOLVER = 1
+--- integer 2
+Const.PISTOL = 2
+--- integer 4
+Const.MACHINEPISTOL = 4
+--- integer 8
+Const.SUBMACHINEGUN = 8
+--- integer 16
+Const.RIFLE = 16
+--- integer 32
+Const.SHOTGUN = 32
+--- integer 64
+Const.LIGHTMACHINEGUN = 64
+
+
 return Const
