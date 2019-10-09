@@ -6,7 +6,7 @@ end
 local RFF = { }
 RFF.Const = require(ENV_RFF_PATH .. "constants")
 RFF.Config = require(ENV_RFF_PATH .. "config")
---RFF.Interface = require(ENV_RFF_PATH .. "interface")
+RFF.Interface = require(ENV_RFF_PATH .. "interface/init")
 RFF.EventSystem = require(ENV_RFF_PATH .. "events")
 
 RFF.ItemGroup = require(ENV_RFF_PATH .. "item_group")

@@ -1,6 +1,7 @@
 local FirearmType = {}
 local ItemType = require(ENV_RFF_PATH .. "item_type")
 local Flags = require(ENV_RFF_PATH .. "firearm/flags")
+local State = require(ENV_RFF_PATH .. "firearm/state")
 
 local Bit = require(ENV_RFF_PATH .. "interface/bit32")
 local Logger = require(ENV_RFF_PATH .. "interface/logger")
@@ -81,6 +82,7 @@ end
 function FirearmType:hasChamberIndicator()
     return self:isFeature(Flags.CHAMBERINDICATOR)
 end
+
 function FirearmType:isFeedType(value)
     if not value then value = FEEDTYPES end
     return Bit.band(self.feed_system, value) ~= 0
@@ -137,7 +139,7 @@ function FirearmType:validate()
 end
 
 
-function FirearmType:create(data_table)
+function FirearmType:create()
     return self:setup({})
 end
 
@@ -151,7 +153,6 @@ called without needing a player or reloadable object.
 
 ]]
 function FirearmType:setup(data_table)
-    local data_table = item:getModData()
     data_table.type_id = self.type_id
 
     data_table.ammo_group = self.ammo_group
@@ -189,28 +190,28 @@ function FirearmType:setup(data_table)
         --data_table.roundChambered = nil
         --data_table.emptyShellChambered = nil
     else
-        data_table.chambered_ammo = nil
+        data_table.chambered_id = nil
         --data_table.roundChambered = 0 -- 0 or 1, a round is currently chambered
         --data_table.emptyShellChambered = 0 -- 0 or 1, a empty shell is currently chambered
     end
 
-    local status = 0
+    local state = 0
     -- set the current firemode to first available position.
 
     --if Firearm.isSelectFire(weaponItem, self) then
     if self:isSemiAuto() then
-        status = status + Status.SINGLESHOT
+        state = state + Status.SINGLESHOT
     elseif self:isFullAuto() then
-        status = status + Status.FULLAUTO
+        state = state + State.FULLAUTO
     elseif self:is2ShotBurst() then
-        status = status + Status.BURST2
+        state = state + State.BURST2
     elseif self:is3ShotBurst() then
-        status = status + Status.BURST3
+        state = state + State.BURST3
     else
-        status = status + Status.SINGLESHOT
+        state = state + State.SINGLESHOT
     end
     --end
-    data_table.status = status
+    data_table.state = state
 
     data_table.magazine_data = {} -- current rounds, LIFO list
     -- data_table.strictAmmoType = nil -- preferred ammo type, this is set by the UI context menu
