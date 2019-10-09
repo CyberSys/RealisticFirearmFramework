@@ -29,10 +29,16 @@ function Tests.run(test_name, callback)
     current_test = test_name
     Tests.log("Starting test")
     total_tests_run = 1 + total_tests_run
+    local failures = assertion_failures
     local result = callback()
     if result then
         total_failures = 1 + total_failures
         Tests.log("Test failed with result " .. result)
+        return
+    end
+    if assertion_failures > failures then
+        total_failures = 1 + total_failures
+        Tests.log("Test failed due to assertion failures")
         return
     end
     Tests.log("Test passed")
