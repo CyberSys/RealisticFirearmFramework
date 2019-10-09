@@ -55,13 +55,13 @@ end
 
 The table contains all the firearm types that can be used for this group.
 
-@tparam string groupName name of a firearm group
+@tparam string group_id name of a firearm group
 
 @treturn nil|table list of names
 
 ]]
-Firearm.getGroup = function(groupName)
-    return FirearmGroupTable[groupName]
+Firearm.getGroup = function(group_id)
+    return FirearmGroupTable[group_id]
 end
 
 Firearm.getGroupTable = function()
@@ -78,8 +78,8 @@ end
 @treturn nil|table data of a registered firearm setup by `ORGM.Firearm.register`
 
 ]]
-Firearm.getDesign = function(itemType, moduleName)
-    return FirearmTable[itemType]
+Firearm.getDesign = function(design_id)
+    return FirearmTable[design_id]
 end
 
 
@@ -92,8 +92,8 @@ end
 @treturn bool true if it is a ORGM registered firearm
 
 ]]
-Firearm.isFirearm = function(itemType, moduleName)
-    return FirearmTable[itemType] ~= nil
+Firearm.isFirearm = function(design_id)
+    return FirearmTable[design_id] ~= nil
 end
 
 

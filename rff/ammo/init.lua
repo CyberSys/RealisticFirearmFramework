@@ -40,18 +40,18 @@ AmmoType._PropertiesTable = {
 
 
 
-Ammo.randomFromGroup = function(group)
-    group = AmmoGroupTable[group]
+Ammo.randomFromGroup = function(group_id)
+    local group = AmmoGroupTable[group_id]
     if not group then return end
     return group:random()
 end
 
-Ammo.newGroup = function(groupName, groupData)
-    AmmoGroup:new(groupName, groupData)
+Ammo.newGroup = function(group_id, group_data)
+    AmmoGroup:new(group_id, group_data)
 end
 
-Ammo.isGroup = function(groupName)
-    return AmmoGroupTable[groupName] ~= nil
+Ammo.isGroup = function(group_id)
+    return AmmoGroupTable[group_id] ~= nil
 end
 
 --[[- Gets the table of ammo groups.
@@ -73,8 +73,8 @@ The table contains all the ammo types that can be used for this group.
 @treturn nil|table list of real ammo names
 
 ]]
-Ammo.getGroup = function(groupName)
-    return AmmoGroupTable[groupName]
+Ammo.getGroup = function(group_id)
+    return AmmoGroupTable[group_id]
 end
 
 
@@ -95,8 +95,8 @@ end
 @treturn table data of a registered ammo setup by `Ammo.register`
 
 ]]
-Ammo.getDesign = function(itemType)
-    return AmmoTable[itemType]
+Ammo.getDesign = function(design_id)
+    return AmmoTable[design_id]
 end
 
 
@@ -108,8 +108,8 @@ end
 @treturn bool true if registered ammo setup by `Ammo.register`
 
 ]]
-Ammo.isAmmo = function(itemType, moduleName)
-    return AmmoTable[itemType] ~= nil
+Ammo.isAmmo = function(design_id)
+    return AmmoTable[design_id] ~= nil
 end
 
 --[[- Checks if a item is ORGM spent casing.
@@ -119,9 +119,9 @@ end
 @treturn bool
 
 ]]
-Ammo.isCase = function(itemType)
+Ammo.isCase = function(design_id)
     -- TODO: this needs a far more robust system....
-    if itemType:sub(1, 5) == "Case_" then return true end
+    if design_id:sub(1, 5) == "Case_" then return true end
     return false
 end
 
@@ -143,9 +143,9 @@ This is called when reloading some guns and all magazines.
 @treturn nil|InventoryItem
 
 ]]
-Ammo.findIn = function(ammoGroup, ammoType, container, mode)
-    ammoGroup = AmmoGroupTable[ammoGroup]
-    if ammoGroup == nil then return nil end
-    return ammoGroup:find(ammoType, container, mode)
+Ammo.findIn = function(ammo_group, ammo_type, container, mode)
+    local group = AmmoGroupTable[ammo_group]
+    if group == nil then return nil end
+    return group:find(ammo_type, container, mode)
 end
 

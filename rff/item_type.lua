@@ -93,55 +93,55 @@ end
 
 --[[- Creates a new ItemType.
 
-@tparam string itemName the name of the new Item
-@tparam table itemData a table containing aditional information for this group.
+@tparam string item_id the name of the new Item
+@tparam table item_data a table containing aditional information for this group.
 @tparam[opt] table template a table containing key/values to be copied to the new
-item should they not exist in itemData.
+item should they not exist in item_data.
 
 @treturn table a new ItemType object
 
 ]]
 
-function ItemType:new(itemName, itemData, template)
+function ItemType:new(item_id, item_data, template)
     local o = { }
     template = template or {}
-    for key, value in pairs(itemData) do o[key] = value end
+    for key, value in pairs(item_data) do o[key] = value end
     setmetatable(o, { __index = self })
-    Logger.verbose("ItemType: Initializing ".. itemName)
-    o.type = itemName -- WARNING: depreciated
-    o.type_id = itemName
+    Logger.verbose("ItemType: Initializing ".. item_id)
+    o.type = item_id -- WARNING: depreciated
+    o.type_id = item_id
     
     -- setup specific properties and error checks
-    if not copyPropertiesTable("ItemType: ".. itemName, o._PropertiesTable, template, o) then
+    if not copyPropertiesTable("ItemType: ".. item_id, o._PropertiesTable, template, o) then
         return nil
     end
 
     if not o:validate() then
-        Logger.error("ItemType: Validation checks failed for " .. itemName .. " (Registration Failed)")
+        Logger.error("ItemType: Validation checks failed for " .. item_id .. " (Registration Failed)")
         return false
     end
 
     -- TODO: this should use some Interface callback function to properly register a item with the application (if needed)
-    o._ItemTable[itemName] = o
+    o._ItemTable[item_id] = o
 
     for gname, weight in pairs(o.Groups or template.Groups) do
         local group = o._GroupTable[gname]
         if group then
-            group:add(itemName, weight)
+            group:add(item_id, weight)
         else
-            Logger.warn("ItemType: " .. itemName .. " requested to join invalid group "..gname)
+            Logger.warn("ItemType: " .. item_id .. " requested to join invalid group "..gname)
         end
     end
     for gname, weight in pairs(o.addGroups or {}) do
         group = o._GroupTable[gname]
         if group then
-            group:add(itemName, weight)
+            group:add(item_id, weight)
         else
-            Logger.warn("ItemType: " .. itemName .. " requested to join invalid group "..gname)
+            Logger.warn("ItemType: " .. item_id .. " requested to join invalid group "..gname)
         end
     end
 
-    Logger.debug("ItemType: Registered " .. itemName)
+    Logger.debug("ItemType: Registered " .. item_id)
     return o
 end
 
@@ -192,7 +192,7 @@ same tempate. Its primarly used to create multiple variants of the same item.
 
 @tparam string namePrefix a string to be prefixed on the name of every variant
 @tparam table template the template table to be passed to `ItemType.new`
-@tparam table variants a table containing sub-tables of itemData to be passed to `ItemType.new`
+@tparam table variants a table containing sub-tables of item_data to be passed to `ItemType.new`
 
 @treturn table a table of group names (keys) and Group objects (values)
 
