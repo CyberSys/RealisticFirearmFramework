@@ -69,4 +69,6 @@ Flags.SHORTRECOIL = 4096
 --- gas fed system with adjustable value
 Flags.GASVALVE = 8192
 
+
+Flags.TRIGGER_TYPES = Flags.SINGLEACTION + Flags.DOUBLEACTION
 return Flags
