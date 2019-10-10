@@ -4,6 +4,8 @@ local Ammo = require(ENV_RFF_PATH .. "ammo/init")
 local Firearm = require(ENV_RFF_PATH .. "firearm/init") 
 local State = require(ENV_RFF_PATH .. "firearm/state")
 
+local EventSystem = require(ENV_RFF_PATH .. "events")
+local Malfunctions = require(ENV_RFF_PATH .. "malfunctions")
 
 --- Firing Functions
 -- @section Fire
@@ -50,16 +52,19 @@ end
 --[[- Called as just as the trigger is pulled.
 
 ]]
-Actions.preFireShot = function(firearm_data, game_item, game_player)
+Actions.preFireShot = function(firearm_data, game_item, game_player, is_firing)
+    -- Trigger event
+    if EventSystem.triggerHalt("PreFire", firearm_data, game_item, game_player, is_firing) then return false end
+    
     if Firearm.isOpenBolt(firearm_data) then
-        Actions.closeBolt(firearm_data, game_item, game_player)
+        Actions.closeBolt(firearm_data, game_item, game_player, is_firing)
         -- TODO: Check malfunction status here for fail to feed, and return false
     end
     -- SA already has hammer cocked by this point, but we dont need to check here.
-    Actions.cockHammer(firearm_data, game_item, game_player) -- chamber rotates here for revolvers
-    Actions.releaseHammer(firearm_data, game_item, game_player)
+    Actions.cockHammer(firearm_data, game_item, game_player, is_firing) -- chamber rotates here for revolvers
+    Actions.releaseHammer(firearm_data, game_item, game_player, is_firing)
     
-    if Malfunctions.checkFire(firearm_data, game_player, game_item) then
+    if Malfunctions.checkFire(firearm_data, game_player, game_item, is_firing) then
         return false
     end
     
@@ -70,35 +75,39 @@ end
 --[[- Called after the trigger is pulled.
 
 ]]
-Actions.postFireShot = function(firearm_data, game_item, game_player)
+Actions.postFireShot = function(firearm_data, game_item, game_player, is_firing)
+    -- Trigger event
+    if EventSystem.triggerHalt("PostFire", firearm_data, game_item, game_player, is_firing) then return false end
+
     firearm_data.rounds_since_cleaned = firearm_data.rounds_since_cleaned + 1
     firearm_data.rounds_fired = 1 + firearm_data.rounds_fired
     Actions.setEmptyCase(firearm_data)
     
     if State.isAutomatic(firearm_data) then
-        Actions.openBolt(firearm_data, game_item, game_player)
+        Actions.openBolt(firearm_data, game_item, game_player, is_firing)
         -- dont close open-bolt designs or ones with slide lock on the last shot
         if (firearm_data.current_capacity ~= 0 or not Firearm.hasSlideLock(firearm_data)) and not Firearm.isOpenBolt(firearm_data) then
-            Actions.closeBolt(firearm_data, game_item, game_player)
+            Actions.closeBolt(firearm_data, game_item, game_player, is_firing)
         end
     elseif State.isBreak(firearm_data) then
         firearm_data.cylinder_position = firearm_data.cylinder_position + 1 -- this can bypass our maxCapacity limit
         -- TODO: if there are barrels left, auto recock the hammer (dual hammer double barrels)
         if firearm_data.magazine_data[firearm_data.cylinder_position] then -- set the next round
-            Actions.setCurrentAmmo(firearm_data, firearm_data.magazine_data[firearm_data.cylinder_position], game_item, game_player)
+            Actions.setCurrentAmmo(firearm_data, firearm_data.magazine_data[firearm_data.cylinder_position], game_item, game_player, is_firing)
         end
     end
+    return true
 end
 
 --[[- Called when the trigger is pulled on a empty chamber.
 
 ]]
-Actions.dryFire = function(firearm_data, game_item, game_player)
+Actions.dryFire = function(firearm_data, game_item, game_player, is_firing)
     if State.isCocked(firearm_data) then
-        Actions.releaseHammer(firearm_data, game_item, game_player)
+        Actions.releaseHammer(firearm_data, game_item, game_player, is_firing)
     elseif not Firearm.isSingleActionOnly(firearm_data) then
-        Actions.cockHammer(firearm_data, game_item, game_player)
-        Actions.releaseHammer(firearm_data, game_item, game_player)
+        Actions.cockHammer(firearm_data, game_item, game_player, is_firing)
+        Actions.releaseHammer(firearm_data, game_item, game_player, is_firing)
     end
 end
 
@@ -110,11 +119,11 @@ end
 --[[- Cocks the hammer and rotates the cylinder for Rotary actionType.
 
 ]]
-Actions.cockHammer = function(firearm_data, game_item, game_player)
+Actions.cockHammer = function(firearm_data, game_item, game_player, is_firing)
     -- rotary cylinders rotate the chamber when the hammer is cocked
     if State.isCocked(firearm_data) then return end
     if State.isRotary(firearm_data) and not State.isOpen(firearm_data) then
-        Actions.rotateCylinder(firearm_data, 1, game_item, game_player)
+        Actions.rotateCylinder(firearm_data, 1, game_item, game_player, is_firing)
     end
     State.setCocked(firearm_data, true)
 end
@@ -122,7 +131,7 @@ end
 --[[- Releases a cocked hammer.
 
 ]]
-Actions.release = function(firearm_data, game_item, game_player)
+Actions.releaseHammer = function(firearm_data, game_item, game_player, is_firing)
     if not State.isCocked(firearm_data) then return end
     State.setCocked(firearm_data, false)
 end
@@ -134,16 +143,16 @@ end
 --[[- Opens the bolt, ejecting whatever is currently in the chamber onto the ground.
 
 ]]
-Actions.openBolt = function(firearm_data, game_item, game_player)
+Actions.openBolt = function(firearm_data, game_item, game_player, is_firing)
     if State.isOpen(firearm_data) then return end -- already opened!
     -- first open the slide...
     State.setOpen(firearm_data, true)
 
-    if Malfunctions.checkExtract(firearm_data, game_item, game_player) then
+    if Malfunctions.checkExtract(firearm_data, game_item, game_player, is_firing) then
         return
     end
 
-    if Malfunctions.checkEject(firearm_data, game_item, game_player) then
+    if Malfunctions.checkEject(firearm_data, game_item, game_player, is_firing) then
         firearm_data.chambered_id = nil
         return
     end
@@ -156,10 +165,10 @@ end
 Single and Double actions this also cocks the hammer.
 
 ]]
-Actions.closeBolt = function(firearm_data, game_item, game_player)
+Actions.closeBolt = function(firearm_data, game_item, game_player, is_firing)
     if not State.isOpen(firearm_data) then return end -- already closed!
     if not Firearm.isDoubleActionOnly(firearm_data) then
-        Actions.cockHammer(firearm_data, game_item, game_player)
+        Actions.cockHammer(firearm_data, game_item, game_player, is_firing)
     end
     State.setForceOpen(firearm_data, false)
     State.setOpen(firearm_data, false)
@@ -168,7 +177,7 @@ Actions.closeBolt = function(firearm_data, game_item, game_player)
     -- a pump action shotgun reloaded with slide open wont chamber a round, THIS NEEDS TO BE HANDLED
     -- open bolt designs dont chamber at all until firing.
 
-    Actions.chamberNextRound(firearm_data, game_item, game_player)
+    Actions.chamberNextRound(firearm_data, game_item, game_player, is_firing)
 end
 
 
@@ -179,20 +188,20 @@ end
 --[[- Rotates the cylinder by the specified amount.
 
 ]]
-Actions.rotateCylinder = function(firearm_data, count, game_item, game_player)
+Actions.rotateCylinder = function(firearm_data, count, game_item, game_player, is_firing)
     local position = firearm_data.cylinder_position
     if (count == nil or count == 0) then -- random count
         count = math.random(firearm_data.max_capacity)
     end
     firearm_data.cylinder_position = ((firearm_data.cylinder_position - 1 + count) % firearm_data.max_capacity) +1
-    Actions.setCurrentAmmo(firearm_data, firearm_data.magazine_data[firearm_data.cylinder_position], game_item, game_player)
+    Actions.setCurrentAmmo(firearm_data, firearm_data.magazine_data[firearm_data.cylinder_position], game_item, game_player, is_firing)
 end
 
 
 --[[- Opens the cylinder.
 
 ]]
-Actions.openCylinder = function(firearm_data, game_item, game_player)
+Actions.openCylinder = function(firearm_data, game_item, game_player, is_firing)
     if State.isOpen(firearm_data) then return end
     State.setOpen(firearm_data, true)
 end
@@ -200,11 +209,11 @@ end
 --[[- Closes the cylinder and sets the current round.
 
 ]]
-Actions.closeCylinder = function(firearm_data, game_item, game_player)
+Actions.closeCylinder = function(firearm_data, game_item, game_player, is_firing)
     if not State.isOpen(firearm_data) then return end
     State.setForceOpen(firearm_data, false)
     State.setOpen(firearm_data, false)
-    Actions.setCurrentAmmo(firearm_data, firearm_data.magazine_data[firearm_data.cylinder_position], game_item, game_player)
+    Actions.setCurrentAmmo(firearm_data, firearm_data.magazine_data[firearm_data.cylinder_position], game_item, game_player, is_firing)
 end
 
 
@@ -214,23 +223,23 @@ end
 --[[- Opens the breech and ejects any shells.
 
 ]]
-Actions.openBreech = function(firearm_data, game_item, game_player)
+Actions.openBreech = function(firearm_data, game_item, game_player, is_firing)
     if State.isOpen(firearm_data) then return end
     State.setOpen(firearm_data, true)
     firearm_data.cylinder_position = 1 -- use cylinder position variable for which barrel to fire, set to 1 for reloading
-    Actions.ejectAll(firearm_data, game_item, game_player)
+    Actions.ejectAll(firearm_data, game_item, game_player, is_firing)
 end
 
 
 --[[- Closes the breech and sets the current round.
 
 ]]
-Actions.closeBreech = function(firearm_data, game_item, game_player)
+Actions.closeBreech = function(firearm_data, game_item, game_player, is_firing)
     if not State.isOpen(firearm_data) then return end
     State.setForceOpen(firearm_data, false)
     State.setOpen(firearm_data, false)
     firearm_data.cylinder_position = 1 -- use cylinder position variable for which barrel to fire
-    Actions.setCurrentAmmo(firearm_data, firearm_data.magazine_data[1], game_item, game_player)
+    Actions.setCurrentAmmo(firearm_data, firearm_data.magazine_data[1], game_item, game_player, is_firing)
 end
 
 
@@ -272,7 +281,7 @@ end
 
 ]]
 Actions.getAmmoAtPosition = function(firearm_data, position)
-    return firearm_data.magazineData[position] -- arrays start at 1
+    return firearm_data.magazine_data[position] -- arrays start at 1
 end
 
 
@@ -292,7 +301,7 @@ end
 Used primarly with revolvers and break barrels on opening.
 
 ]]
-Actions.ejectAll = function(firearm_data, game_item, game_player)
+Actions.ejectAll = function(firearm_data, game_item, game_player, is_firing)
     if not State.isOpen(firearm_data) then return end
     --local square = playerObj:getCurrentSquare()
 
@@ -324,7 +333,7 @@ end
 
 
 ]]
-Actions.chamberNextRound = function(firearm_data, game_item, game_player)
+Actions.chamberNextRound = function(firearm_data, game_item, game_player, is_firing)
     if firearm_data.current_capacity == 0 or firearm_data.current_capacity == nil then
         firearm_data.loaded_ammo_id = nil
         return
@@ -334,7 +343,7 @@ Actions.chamberNextRound = function(firearm_data, game_item, game_player)
         -- TODO: seems i missed filling out this part...
     end
     -- TODO: check failure to feed jams here
-    if Malfunctions.checkFeed(firearm_data, playerObj, weaponItem, ammoType) then
+    if Malfunctions.checkFeed(firearm_data, playerObj, weaponItem, ammoType, is_firing) then
 
     end
 
@@ -343,7 +352,7 @@ Actions.chamberNextRound = function(firearm_data, game_item, game_player)
     firearm_data.magazine_data[firearm_data.current_capacity] = nil
     firearm_data.current_capacity = firearm_data.current_capacity - 1
     -- a different round has been chambered, change the stats
-    Actions.setCurrentAmmo(firearm_data, ammo_id, game_item, game_player)
+    Actions.setCurrentAmmo(firearm_data, ammo_id, game_item, game_player, is_firing)
 
 end
 
@@ -352,7 +361,7 @@ end
 
 
 ]]
-Actions.setCurrentAmmo = function(firearm_data, ammo_id, game_item, game_player)
+Actions.setCurrentAmmo = function(firearm_data, ammo_id, game_item, game_player, is_firing)
     if ammo_id == nil or Ammo.isCase(ammo_id) then return end
     if not Ammo.isAmmo(ammo_id) then
         firearm_data.set_ammo_id = nil
