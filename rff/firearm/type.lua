@@ -154,7 +154,7 @@ called without needing a player or reloadable object.
 ]]
 function FirearmType:setup(data_table)
     data_table.type_id = self.type_id
-
+    data_table.features = self.features
     data_table.ammo_group = self.ammo_group
 
     data_table.max_capacity = self.max_capacity
@@ -223,6 +223,7 @@ function FirearmType:setup(data_table)
     data_table.rounds_fired = 0
     data_table.rounds_since_cleaned = 0
     data_table.barrel_length = self.barrel_length
+    return data_table
 end
 
 
