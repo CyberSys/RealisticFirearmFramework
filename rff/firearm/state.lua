@@ -8,6 +8,7 @@
 ]]
 
 local State = {}
+local Flags = require(ENV_RFF_PATH .. "firearm/flags")
 
 local Bit = require(ENV_RFF_PATH .. "interface/bit32")
 
@@ -87,9 +88,10 @@ end
 
 State.setState = function(firearm_data, state, enabled)
     if enabled then
+        -- should xor this
         firearm_data.state = not State.isState(firearm_data, state) and firearm_data.state + state or firearm_data.state
     else
-        firearm_data.state = Bit.bor(state, firearm_data.state)
+        firearm_data.state = State.isState(firearm_data, state) and firearm_data.state - state or firearm_data.state
     end
 end
 
@@ -103,6 +105,10 @@ end
 
 State.setForceOpen = function(firearm_data, enabled)
     State.setState(firearm_data, State.FORCEOPEN, enabled)
+end
+
+State.setSafe = function(firearm_data, enabled)
+    return State.setState(firearm_data, State.SAFETY, enabled)
 end
 
 return State
