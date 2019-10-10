@@ -44,11 +44,18 @@ function Tests.run(test_name, callback)
     Tests.log("Test passed")
 end
 
-function Tests.assert(result, text)
+function Tests.assert(result, text, halt)
     assertion_count = 1 + assertion_count
     if not result then
         assertion_failures = 1 + assertion_failures
         Tests.log("Assertion Failed (".. assertion_count.. ")- " .. text)
+        if halt then 
+            total_failures = 1 + total_failures
+            Tests.log("Cancelling further tests.")
+            Tests.counts()
+            os.exit()
+        end
+        return true
     end
 end
 function Tests.counts()
