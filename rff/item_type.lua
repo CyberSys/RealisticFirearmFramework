@@ -124,7 +124,8 @@ function ItemType:new(item_id, item_data, template)
     -- TODO: this should use some Interface callback function to properly register a item with the application (if needed)
     o._ItemTable[item_id] = o
 
-    for gname, weight in pairs(o.Groups or template.Groups) do
+    local groups = o.Groups or template.Groups
+    for gname, weight in pairs(groups or {}) do
         local group = o._GroupTable[gname]
         if group then
             group:add(item_id, weight)
