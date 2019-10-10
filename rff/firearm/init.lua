@@ -7,7 +7,6 @@
 
 ]]
 
-local Firearm = {}
 
 local FirearmGroup = require(ENV_RFF_PATH .. "firearm/group")
 local FirearmType = require(ENV_RFF_PATH .. "firearm/type")
@@ -18,8 +17,14 @@ local Flags = require(ENV_RFF_PATH .. "firearm/flags")
 local State = require(ENV_RFF_PATH .. "firearm/state")
 local Bit = require(ENV_RFF_PATH .. "interface/bit32")
 
+local Firearm = {}
 local FirearmTable = { }
 local FirearmGroupTable = { }
+
+Firearm.FirearmGroup = FirearmGroup
+Firearm.FirearmType = FirearmType
+Firearm.State = State
+Firearm.Flags = Flags
 
 FirearmGroup._GroupTable = FirearmGroupTable
 FirearmGroup._ItemTable = FirearmTable

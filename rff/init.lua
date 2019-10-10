@@ -13,11 +13,11 @@ RFF.ItemGroup = require(ENV_RFF_PATH .. "item_group")
 RFF.ItemType = require(ENV_RFF_PATH .. "item_type")
 
 RFF.Ammo = require(ENV_RFF_PATH .. "ammo/init")
-RFF.AmmoGroup = require(ENV_RFF_PATH .. "ammo/group")
-RFF.AmmoType = require(ENV_RFF_PATH .. "ammo/type")
+--RFF.AmmoGroup = require(ENV_RFF_PATH .. "ammo/group")
+--RFF.AmmoType = require(ENV_RFF_PATH .. "ammo/type")
 
 RFF.Firearm = require(ENV_RFF_PATH .. "firearm/init")
-RFF.FirearmGroup = require(ENV_RFF_PATH .. "firearm/group")
-RFF.FirearmType = require(ENV_RFF_PATH .. "firearm/type")
+--RFF.FirearmGroup = require(ENV_RFF_PATH .. "firearm/group")
+--RFF.FirearmType = require(ENV_RFF_PATH .. "firearm/type")
 
 return RFF

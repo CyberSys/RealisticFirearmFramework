@@ -8,14 +8,18 @@
 ]]
 
 
-local Ammo = { }
 local Flags = require(ENV_RFF_PATH .. "ammo/flags")
 
 local AmmoGroup = require(ENV_RFF_PATH .. "ammo/group")
 local AmmoType =  require(ENV_RFF_PATH .. "ammo/type")
 
+local Ammo = { }
 local AmmoTable = { }
 local AmmoGroupTable = { }
+
+Ammo.AmmoGroup = AmmoGroup
+Ammo.AmmoType = AmmoType
+Ammo.Flags = Flags
 
 AmmoGroup._GroupTable = AmmoGroupTable
 AmmoGroup._ItemTable = AmmoTable
@@ -149,3 +153,4 @@ Ammo.findIn = function(ammo_group, ammo_type, container, mode)
     return group:find(ammo_type, container, mode)
 end
 
+return Ammo
