@@ -216,10 +216,10 @@ function FirearmType:setup(data_table)
     data_table.magazine_data = {} -- current rounds, LIFO list
     -- data_table.strictAmmoType = nil -- preferred ammo type, this is set by the UI context menu
     -- last round the stats were set to, used for knowing what to eject, and if we should change weapon stats when chambering next round
-    data_table.set_ammo = nil
+    data_table.set_ammo_id = nil
     -- what type of rounds are loaded, either ammo name, or 'mixed'. This is only really used when ejecting a magazine, so the mag's data_table
     -- has this flagged (used when loading new mags to match self.preferredAmmoType). Also used in tooltips
-    data_table.loaded_ammo = nil
+    data_table.loaded_ammo_id = nil
     data_table.rounds_fired = 0
     data_table.rounds_since_cleaned = 0
     data_table.barrel_length = self.barrel_length
