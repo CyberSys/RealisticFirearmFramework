@@ -8,6 +8,7 @@ local Firearm = require(ENV_RFF_PATH .. "firearm/init")
 local Ammo = require(ENV_RFF_PATH .. "ammo/init")
 local State = Firearm.State
 local assert = Tests.assert
+local Instance = require(ENV_RFF_PATH .. "firearm/instance")
 Tests.reset()
 
 local firearm_data
@@ -81,12 +82,12 @@ end)
 Tests.run("Operation", function()
 
     Tests.log("Engaging safety...")
-    State.setSafe(firearm_data, true)
+    Instance.setSafe(firearm_data, true)
     --assert(not Actions.willFire(firearm_data, nil, nil), "willFire returned true, safety check failed.")
 
     Tests.log("Safety check passed. Disenaging and cocking...")
-    State.setSafe(firearm_data, false)
-    assert(State.isSafe(firearm_data) == false, "Failed to disengage safety")
+    Instance.setSafe(firearm_data, false)
+    assert(Instance.isSafe(firearm_data) == false, "Failed to disengage safety")
 
     Actions.cockHammer(firearm_data, nil, nil, false)
     assertState({cylinder_position = 2, state = State.SINGLESHOT + State.COCKED})

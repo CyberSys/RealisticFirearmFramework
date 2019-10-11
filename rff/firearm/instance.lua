@@ -1,5 +1,10 @@
 local Instance = {}
+local State = require(ENV_RFF_PATH .. "firearm/state")
+local Flags = require(ENV_RFF_PATH .. "firearm/flags")
 local Ammo = require(ENV_RFF_PATH .. "ammo/init")
+
+local Bit = require(ENV_RFF_PATH .. "interface/bit32")
+
 
 
 -- Chamber, or current cylinder position
@@ -188,6 +193,87 @@ Instance.getMagazineData = function(firearm_data)
     return firearm_data.magazine_data
 end
 
+Instance.isFeedMode = function(firearm_data, feed_mode)
+    local value = firearm_data.feed_mode or firearm_data.feed_system
+    if not value then return end
+    return Bit.band(value, feed_mode) ~= 0
+end
+Instance.isAutomatic = function(firearm_data)
+    return Instance.isFeedMode(firearm_data, Flags.AUTO)
+end
+Instance.isPump = function(firearm_data)
+    return Instance.isFeedMode(firearm_data, Flags.PUMP)
+end
+Instance.isLever = function(firearm_data)
+    return Instance.isFeedMode(firearm_data, Flags.LEVER)
+end
+Instance.isRotary = function(firearm_data)
+    return Instance.isFeedMode(firearm_data, Flags.ROTARY)
+end
+Instance.isBreak = function(firearm_data)
+    return Instance.isFeedMode(firearm_data, Flags.BREAK)
+end
+
+Instance.isState = function(firearm_data, state)
+    if not firearm_data.state then return end
+    return Bit.band(firearm_data.state, state) ~= 0
+end
+Instance.isForceOpen = function(firearm_data)
+    return Instance.isState(firearm_data, State.FORCEOPEN)
+end
+
+Instance.isFullAuto = function(firearm_data)
+    return Instance.isState(firearm_data, State.FULLAUTO)
+end
+
+Instance.isSingle = function(firearm_data)
+    return Instance.isState(firearm_data, State.SINGLESHOT)
+end
+
+Instance.is2ShotBurst = function(firearm_data)
+    return Instance.isState(firearm_data, State.BURST2)
+end
+
+Instance.is3ShotBurst = function(firearm_data)
+    return Instance.isState(firearm_data, State.BURST3)
+end
+
+Instance.isSafe = function(firearm_data)
+    return Instance.isState(firearm_data, State.SAFETY)
+end
+
+Instance.isCocked = function(firearm_data)
+    return Instance.isState(firearm_data, State.COCKED)
+end
+
+Instance.isOpen = function(firearm_data)
+    return Instance.isState(firearm_data, State.OPEN)
+end
+
+Instance.setState = function(firearm_data, state, enabled)
+    if enabled then
+        -- should xor this
+        firearm_data.state = not Instance.isState(firearm_data, state) and firearm_data.state + state or firearm_data.state
+    else
+        firearm_data.state = Instance.isState(firearm_data, state) and firearm_data.state - state or firearm_data.state
+    end
+end
+
+Instance.setOpen = function(firearm_data, enabled)
+    Instance.setState(firearm_data, State.OPEN, enabled)
+end
+
+Instance.setCocked = function(firearm_data, enabled)
+    Instance.setState(firearm_data, State.COCKED, enabled)
+end
+
+Instance.setForceOpen = function(firearm_data, enabled)
+    Instance.setState(firearm_data, State.FORCEOPEN, enabled)
+end
+
+Instance.setSafe = function(firearm_data, enabled)
+    return Instance.setState(firearm_data, State.SAFETY, enabled)
+end
 
 
 return Instance

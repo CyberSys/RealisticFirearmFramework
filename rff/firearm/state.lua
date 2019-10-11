@@ -8,9 +8,6 @@
 ]]
 
 local State = {}
-local Flags = require(ENV_RFF_PATH .. "firearm/flags")
-
-local Bit = require(ENV_RFF_PATH .. "interface/bit32")
 
 --- integer 8, Singleshot or Semi-auto mode
 State.SINGLESHOT = 8
@@ -33,88 +30,5 @@ State.FORCEOPEN = 1024
 State.FEEDJAMMED = 2048 
 -- squib loaded barrel
 State.BARRELJAMMED = 4096 
-
-
-State.isFeedMode = function(firearm_data, feed_mode)
-    local value = firearm_data.feed_mode or firearm_data.feed_system
-    if not value then return end
-    return Bit.band(value, feed_mode) ~= 0
-end
-State.isAutomatic = function(firearm_data)
-    return State.isFeedMode(firearm_data, Flags.AUTO)
-end
-State.isPump = function(firearm_data)
-    return State.isFeedMode(firearm_data, Flags.PUMP)
-end
-State.isLever = function(firearm_data)
-    return State.isFeedMode(firearm_data, Flags.LEVER)
-end
-State.isRotary = function(firearm_data)
-    return State.isFeedMode(firearm_data, Flags.ROTARY)
-end
-State.isBreak = function(firearm_data)
-    return State.isFeedMode(firearm_data, Flags.BREAK)
-end
-
-State.isState = function(firearm_data, state)
-    if not firearm_data.state then return end
-    return Bit.band(firearm_data.state, state) ~= 0
-end
-State.isForceOpen = function(firearm_data)
-    return State.isState(firearm_data, State.FORCEOPEN)
-end
-
-State.isFullAuto = function(firearm_data)
-    return State.isState(firearm_data, State.FULLAUTO)
-end
-
-State.isSingle = function(firearm_data)
-    return State.isState(firearm_data, State.SINGLESHOT)
-end
-
-State.is2ShotBurst = function(firearm_data)
-    return State.isState(firearm_data, State.BURST2)
-end
-
-State.is3ShotBurst = function(firearm_data)
-    return State.isState(firearm_data, State.BURST3)
-end
-
-State.isSafe = function(firearm_data)
-    return State.isState(firearm_data, State.SAFETY)
-end
-
-State.isCocked = function(firearm_data)
-    return State.isState(firearm_data, State.COCKED)
-end
-
-State.isOpen = function(firearm_data)
-    return State.isState(firearm_data, State.OPEN)
-end
-
-State.setState = function(firearm_data, state, enabled)
-    if enabled then
-        -- should xor this
-        firearm_data.state = not State.isState(firearm_data, state) and firearm_data.state + state or firearm_data.state
-    else
-        firearm_data.state = State.isState(firearm_data, state) and firearm_data.state - state or firearm_data.state
-    end
-end
-
-State.setOpen = function(firearm_data, enabled)
-    State.setState(firearm_data, State.OPEN, enabled)
-end
-
-State.setCocked = function(firearm_data, enabled)
-    State.setState(firearm_data, State.COCKED, enabled)
-end
-
-State.setForceOpen = function(firearm_data, enabled)
-    State.setState(firearm_data, State.FORCEOPEN, enabled)
-end
-
-State.setSafe = function(firearm_data, enabled)
-    return State.setState(firearm_data, State.SAFETY, enabled)
-end
 
 return State
