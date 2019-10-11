@@ -29,6 +29,12 @@ State.COCKED = 512
 -- user specifically requested gun should be open. To prevent normal reloading from auto racking.
 State.FORCEOPEN = 1024 
 
+-- bolt will not close (or open, depending on state.)
+State.FEEDJAMMED = 2048 
+-- squib loaded barrel
+State.BARRELJAMMED = 4096 
+
+
 State.isFeedMode = function(firearm_data, feed_mode)
     local value = firearm_data.feed_mode or firearm_data.feed_system
     if not value then return end
