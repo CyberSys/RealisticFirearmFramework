@@ -3,7 +3,7 @@ local Actions = {}
 local Ammo = require(ENV_RFF_PATH .. "ammo/init")
 local Firearm = require(ENV_RFF_PATH .. "firearm/init") 
 local Instance = require(ENV_RFF_PATH .. "firearm/instance")
-
+Firearm.Actions = Actions
 
 local EventSystem = require(ENV_RFF_PATH .. "events")
 local Malfunctions = require(ENV_RFF_PATH .. "malfunctions")
@@ -106,6 +106,7 @@ end
 Actions.cockHammer = function(firearm_data, game_item, game_player, is_firing)
     -- rotary cylinders rotate the chamber when the hammer is cocked
     if Instance.isCocked(firearm_data) then return false end
+    --if EventSystem.triggerHalt("HammerCocked", firearm_data, game_item, game_player, is_firing) then return false end
     if Instance.isRotary(firearm_data) and not Instance.isOpen(firearm_data) then
         Actions.rotateCylinder(firearm_data, 1, game_item, game_player, is_firing)
     end
@@ -118,6 +119,7 @@ end
 ]]
 Actions.releaseHammer = function(firearm_data, game_item, game_player, is_firing)
     if not Instance.isCocked(firearm_data) then return false end
+    --if EventSystem.triggerHalt("HammerReleased", firearm_data, game_item, game_player, is_firing) then return false end
     Instance.setCocked(firearm_data, false)
     return true
 end
@@ -131,6 +133,7 @@ end
 ]]
 Actions.openBolt = function(firearm_data, game_item, game_player, is_firing)
     if Instance.isOpen(firearm_data) then return end -- already opened!
+    --if EventSystem.triggerHalt("BoltOpened", firearm_data, game_item, game_player, is_firing) then return false end
     -- first open the slide...
     Instance.setOpen(firearm_data, true)
 
@@ -154,6 +157,7 @@ Single and Double actions this also cocks the hammer.
 ]]
 Actions.closeBolt = function(firearm_data, game_item, game_player, is_firing)
     if not Instance.isOpen(firearm_data) then return false end -- already closed!
+    --if EventSystem.triggerHalt("BoltClosed", firearm_data, game_item, game_player, is_firing) then return false end
     if not Firearm.isDoubleActionOnly(firearm_data) then
         Actions.cockHammer(firearm_data, game_item, game_player, is_firing)
     end
@@ -177,6 +181,7 @@ end
 
 ]]
 Actions.rotateCylinder = function(firearm_data, count, game_item, game_player, is_firing)
+    --if EventSystem.triggerHalt("CylinderRotated", firearm_data, game_item, game_player, is_firing) then return false end
     if not count or count == 0 then -- random count
         Instance.setRandomPosition(firearm_data)
         return false
@@ -193,6 +198,7 @@ end
 ]]
 Actions.openCylinder = function(firearm_data, game_item, game_player, is_firing)
     if Instance.isOpen(firearm_data) then return false end
+    --if EventSystem.triggerHalt("CylinderOpened", firearm_data, game_item, game_player, is_firing) then return false end
     Instance.setOpen(firearm_data, true)
     return true
 end
@@ -202,6 +208,7 @@ end
 ]]
 Actions.closeCylinder = function(firearm_data, game_item, game_player, is_firing)
     if not Instance.isOpen(firearm_data) then return false end
+    --if EventSystem.triggerHalt("CylinderClosed", firearm_data, game_item, game_player, is_firing) then return false end
     Instance.setForceOpen(firearm_data, false)
     Instance.setOpen(firearm_data, false)
     updateSetAmmo(firearm_data, game_item, game_player, is_firing)
@@ -217,6 +224,7 @@ end
 ]]
 Actions.openBreech = function(firearm_data, game_item, game_player, is_firing)
     if Instance.isOpen(firearm_data) then return false end
+    --if EventSystem.triggerHalt("BreechOpened", firearm_data, game_item, game_player, is_firing) then return false end
     Instance.setOpen(firearm_data, true)
     Instance.setPosition(firearm_data, 1) -- set to 1 for reloading
     Actions.ejectAll(firearm_data, game_item, game_player, is_firing)
@@ -229,6 +237,7 @@ end
 ]]
 Actions.closeBreech = function(firearm_data, game_item, game_player, is_firing)
     if not Instance.isOpen(firearm_data) then return false end
+    --if EventSystem.triggerHalt("BreechClosed", firearm_data, game_item, game_player, is_firing) then return false end
     Instance.setForceOpen(firearm_data, false)
     Instance.setOpen(firearm_data, false)
     Instance.setPosition(firearm_data, 1) 
@@ -247,6 +256,8 @@ end
 ]]
 Actions.loadAmmo = function(firearm_data, ammo_id, position)
     if Instance.isAmmoCountMaxed(firearm_data) then return false end
+    if not Ammo.isAmmo(ammo_id) then return false end
+    --if EventSystem.triggerHalt("AmmoLoaded", firearm_data, game_item, game_player, is_firing) then return false end
     Instance.setAmmoCountRelative(firearm_data, 1)
     if position then
         Instance.setAmmoAtPosition(firearm_data, position, ammo_id)
@@ -283,6 +294,8 @@ Actions.chamberNextRound = function(firearm_data, game_item, game_player, is_fir
         Instance.updateLoadedAmmo() 
         return false
     end
+
+    --if EventSystem.triggerHalt("RoundChambered", firearm_data, game_item, game_player, is_firing) then return false end
 
     local ammo_id = Instance.getAmmoAtNextPosition(firearm_data)
     -- firearm_data.magazine_data[firearm_data.current_capacity]

@@ -25,6 +25,7 @@ Firearm.FirearmGroup = FirearmGroup
 Firearm.FirearmType = FirearmType
 Firearm.State = State
 Firearm.Flags = Flags
+Firearm.Instance = require(ENV_RFF_PATH .. "firearm/instance")
 
 FirearmGroup._GroupTable = FirearmGroupTable
 FirearmGroup._ItemTable = FirearmTable
