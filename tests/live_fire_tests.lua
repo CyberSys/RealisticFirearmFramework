@@ -105,11 +105,6 @@ end)
 
 
 Tests.run("Firing", function()
-    local function assertWillFire(expected)
-        local result = Actions.willFire(firearm_data, nil, nil)
-        assert(result == expected, "willFire returned ".. tostring(result)) 
-    end 
-
     local function assertPullTrigger(expected)
         local result = Actions.pullTrigger(firearm_data, nil, nil, true)
         assert(result == expected, "pullTrigger returned ".. tostring(result)) 
@@ -124,7 +119,7 @@ Tests.run("Firing", function()
     Tests.log("Recocking and testing Single-Action shot...")
     Actions.cockHammer(firearm_data, nil, nil, false)
     assertState({current_capacity = 6, cylinder_position = 3, state = State.SINGLESHOT + State.COCKED})
-    --assertWillFire(true)
+
      -- Actions.pullTrigger(firearm_data, nil, nil, true)
     assertPullTrigger(true)
     
@@ -134,14 +129,13 @@ Tests.run("Firing", function()
     assertState({current_capacity = 5, cylinder_position = 3, state = State.SINGLESHOT, 
         magazine_data = {[3] = "Case_357Magnum" }
     })
-    -- TODO: functions for checking total empty case count, and isCase()
+
     Tests.log("Fire successful. Empty casing detected in cylinder.")
     
     Tests.log("Testing Double-Action shot")
-    --assertWillFire(true)
+
     assertPullTrigger(true)
     assertState({current_capacity = 5, cylinder_position = 4, state = State.SINGLESHOT})
-    
     Tests.log("BANG!")
     assertShotFired(true)
     assertState({current_capacity = 4, cylinder_position = 4, state = State.SINGLESHOT,
@@ -149,34 +143,27 @@ Tests.run("Firing", function()
     })
     
     Tests.log("Emptying cylinder...")
-    --assertWillFire(true)
+
     assertPullTrigger(true)
     assertState({current_capacity = 4, cylinder_position = 5, state = State.SINGLESHOT})
-
     Tests.log("BANG!")
     assertShotFired(true)
     assertState({current_capacity = 3, cylinder_position = 5, state = State.SINGLESHOT})
 
-    --assertWillFire(true)
     assertPullTrigger(true)
     assertState({current_capacity = 3, cylinder_position = 6, state = State.SINGLESHOT})
-
     Tests.log("BANG!")
     assertShotFired(true)
     assertState({current_capacity = 2, cylinder_position = 6, state = State.SINGLESHOT})
 
-    --assertWillFire(true)
     assertPullTrigger(true)
     assertState({current_capacity = 2, cylinder_position = 1, state = State.SINGLESHOT})
-    
     Tests.log("BANG!")
     assertShotFired(true)
     assertState({current_capacity = 1, cylinder_position = 1, state = State.SINGLESHOT})
 
-    --assertWillFire(true)
     assertPullTrigger(true)
     assertState({current_capacity = 1, cylinder_position = 2, state = State.SINGLESHOT})
-
     Tests.log("BANG!")
     assertShotFired(true)
     assertState({current_capacity = 0, cylinder_position = 2, state = State.SINGLESHOT,
@@ -184,7 +171,6 @@ Tests.run("Firing", function()
     })
 
     Tests.log("Cylinder Empty")
-    --assertWillFire(false)
 end)
 
 

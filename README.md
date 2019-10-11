@@ -4,7 +4,19 @@ A lua framework for realistic firearms mechanics in games, game mods, and other 
 
 This project is in extreme alpha state.
 
-Provides the core features for Project Zomboid's ORGM mod.
+What this project is:
+
+* A evolution of the ORGM mod for Project Zomboid, redesigned to be a application independent framework.
+
+* A system incorporating realistic firearm mechanics, operation of the weapons, mechanical and ammunition failures, and 
+recalculation of firearm stats based on factors such as current ammo in the chamber (multi ammo types supported), 
+weight of attachments absorbing recoil, and much more.
+
+* Abstract enough potential uses include anything from 3d shooters to 2d turn based games. 
+
+What this project is **NOT**:
+
+* A scientific simulation of ballistic performance
 
 The Framework is made up of several components:
 
@@ -34,16 +46,16 @@ In addition to the Interface, a event/callback system is used so the Bridge can 
 
 Example events:
 
-* MagazineInsert
-* MagazineEject
-* MagazineLoad
+* MagazineInserted
+* MagazineEjected
+* MagazineLoaded
 * MagazineUnload
 * FirearmReload
 * FirearmUnload
 * RoundChambered
-* PreFire
-* PostFire
-* BoltOpen
-* BoltClose
+* TriggerPulled
+* ShotFired
+* BoltOpened
+* BoltClosed
 
  
