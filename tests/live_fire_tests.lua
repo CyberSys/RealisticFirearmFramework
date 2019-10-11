@@ -7,11 +7,22 @@ local Actions = require(ENV_RFF_PATH .. "firearm/actions")
 local Firearm = require(ENV_RFF_PATH .. "firearm/init")
 local Ammo = require(ENV_RFF_PATH .. "ammo/init")
 local State = Firearm.State
-
 local assert = Tests.assert
 Tests.reset()
 
 local firearm_data
+
+local function assertState(data_state)
+    for key, value in pairs(data_state) do
+        if type(value) == 'table' then
+            for key2, value2 in pairs(value) do
+                assert(firearm_data[key][key2] == value2, "key '".. key2 .."' in table '".. key .. "' doesnt match expected value of " .. value2 .. ", but is ".. firearm_data[key][key2])
+            end 
+        else
+            assert(firearm_data[key] == value, "key '".. key .."' doesnt match expected value of " .. value .. ", but is ".. firearm_data[key])
+        end
+    end 
+end
 
 Tests.run("Ammo Registration", function()
 
@@ -61,118 +72,118 @@ Tests.run("Spawning", function()
         firearm_data.magazine_data[i] = "Ammo_357Magnum_HP"
     end
     firearm_data.current_capacity = firearm_data.max_capacity
-    assert(Actions.willFire(firearm_data, nil, nil), 
-        "willFire returned false", true)
+    --assert(Actions.willFire(firearm_data, nil, nil), "willFire returned false", true)
 
     Tests.log("Firearm loaded and ready to fire.")
 end)
+
 
 Tests.run("Operation", function()
 
     Tests.log("Engaging safety...")
     State.setSafe(firearm_data, true)
-    assert(not Actions.willFire(firearm_data, nil, nil), "willFire returned true, safety check failed.")
+    --assert(not Actions.willFire(firearm_data, nil, nil), "willFire returned true, safety check failed.")
 
     Tests.log("Safety check passed. Disenaging and cocking...")
     State.setSafe(firearm_data, false)
     assert(State.isSafe(firearm_data) == false, "Failed to disengage safety")
 
     Actions.cockHammer(firearm_data, nil, nil, false)
-    assert(State.isCocked(firearm_data), "Hammer failed to cock.")
-    assert(firearm_data.cylinder_position == 2, "Cylinder in wrong position. Should be 2, is at ".. firearm_data.cylinder_position)
-    assert(Actions.willFire(firearm_data, nil, nil), "willFire returned false")
+    assertState({cylinder_position = 2, state = State.SINGLESHOT + State.COCKED})
+    --assert(Actions.willFire(firearm_data, nil, nil), "willFire returned false")
+
     
     Tests.log("Hammer cocked and cylinder rotated ok. Releasing hammer...")
     Actions.releaseHammer(firearm_data, nil, nil, false)
-    assert(not State.isCocked(firearm_data), "Hammer failed to cock.")
-    assert(firearm_data.cylinder_position == 2, "Cylinder in wrong position. Should be 2, is at ".. firearm_data.cylinder_position)
-    if assert(Actions.willFire(firearm_data, nil, nil), "willFire returned false") then return end
+    assertState({cylinder_position = 2, state = State.SINGLESHOT})
+
+    --if assert(Actions.willFire(firearm_data, nil, nil), "willFire returned false") then return end
     
     Tests.log("Hammer released ok.") 
 end)
 
+
 Tests.run("Firing", function()
-    
-    local function assertCapacity(v)
-        assert(firearm_data.current_capacity == v, "Ammo count is wrong. Should be ".. v ..", is at ".. firearm_data.current_capacity)
-    end
-    local function assertPosition(v)
-        assert(firearm_data.cylinder_position == v, "Cylinder in wrong position. Should be "..v..", is at ".. firearm_data.cylinder_position)
-    end
     local function assertWillFire(expected)
         local result = Actions.willFire(firearm_data, nil, nil)
         assert(result == expected, "willFire returned ".. tostring(result)) 
     end 
 
-    local function assertPreFireShot(expected)
-        local result = Actions.preFireShot(firearm_data, nil, nil, true)
-        assert(result == expected, "preFireShot returned ".. tostring(result)) 
+    local function assertPullTrigger(expected)
+        local result = Actions.pullTrigger(firearm_data, nil, nil, true)
+        assert(result == expected, "pullTrigger returned ".. tostring(result)) 
     end
 
-    local function assertPostFireShot(expected)
-        local result = Actions.postFireShot(firearm_data, nil, nil, true)
-        assert(result == expected, "postFireShot returned ".. tostring(result)) 
+    local function assertShotFired(expected)
+        local result = Actions.shotFired(firearm_data, nil, nil, true)
+        assert(result == expected, "shotFired returned ".. tostring(result)) 
     end
 
 
     Tests.log("Recocking and testing Single-Action shot...")
     Actions.cockHammer(firearm_data, nil, nil, false)
-    assert(State.isCocked(firearm_data), "Hammer failed to cock.")
-    assertPosition(3)
-    assertWillFire(true)
-    assertPreFireShot(true)
+    assertState({current_capacity = 6, cylinder_position = 3, state = State.SINGLESHOT + State.COCKED})
+    --assertWillFire(true)
+     -- Actions.pullTrigger(firearm_data, nil, nil, true)
+    assertPullTrigger(true)
     
     Tests.log("BANG!")
-    assertPostFireShot(true)
-    assertPosition(3)
-    assertCapacity(5)
-    assert(firearm_data.magazine_data[3] == "Case_357Magnum", "No empty shell casing detected at cylinder position")
+     -- Actions.shotFired(firearm_data, nil, nil, true)
+    assertShotFired(true)
+    assertState({current_capacity = 5, cylinder_position = 3, state = State.SINGLESHOT, 
+        magazine_data = {[3] = "Case_357Magnum" }
+    })
     -- TODO: functions for checking total empty case count, and isCase()
     Tests.log("Fire successful. Empty casing detected in cylinder.")
     
     Tests.log("Testing Double-Action shot")
-    assert(not State.isCocked(firearm_data), "Hammer is already cocked.")
-    assertWillFire(true)
-    assertPreFireShot(true)
-    assertPosition(4)
+    --assertWillFire(true)
+    assertPullTrigger(true)
+    assertState({current_capacity = 5, cylinder_position = 4, state = State.SINGLESHOT})
     
     Tests.log("BANG!")
-    assertPostFireShot(true)
-    assertPosition(4)
-    assertCapacity(4)
-    assert(firearm_data.magazine_data[3] == "Case_357Magnum", "No empty shell casing detected at cylinder position")
+    assertShotFired(true)
+    assertState({current_capacity = 4, cylinder_position = 4, state = State.SINGLESHOT,
+        magazine_data = { [4] = "Case_357Magnum" }
+    })
     
     Tests.log("Emptying cylinder...")
-    assertWillFire(true)
-    assertPreFireShot(true)
-    assertPosition(5)
-    Tests.log("BANG!")
-    assertPostFireShot(true)
-    assertCapacity(3)
-    assertWillFire(true)
-    assertPreFireShot(true)
-    assertPosition(6)
-    Tests.log("BANG!")
-    assertPostFireShot(true)
-    assertCapacity(2)
-    assertWillFire(true)
-    assertPreFireShot(true)
-    assertPosition(1)
-    Tests.log("BANG!")
-    assertPostFireShot(true)
-    assertCapacity(1)
+    --assertWillFire(true)
+    assertPullTrigger(true)
+    assertState({current_capacity = 4, cylinder_position = 5, state = State.SINGLESHOT})
 
-    assertWillFire(true)
-    assertPreFireShot(true)
-    assertPosition(2)
     Tests.log("BANG!")
-    assertPostFireShot(true)
-    assertCapacity(0)
+    assertShotFired(true)
+    assertState({current_capacity = 3, cylinder_position = 5, state = State.SINGLESHOT})
+
+    --assertWillFire(true)
+    assertPullTrigger(true)
+    assertState({current_capacity = 3, cylinder_position = 6, state = State.SINGLESHOT})
+
+    Tests.log("BANG!")
+    assertShotFired(true)
+    assertState({current_capacity = 2, cylinder_position = 6, state = State.SINGLESHOT})
+
+    --assertWillFire(true)
+    assertPullTrigger(true)
+    assertState({current_capacity = 2, cylinder_position = 1, state = State.SINGLESHOT})
+    
+    Tests.log("BANG!")
+    assertShotFired(true)
+    assertState({current_capacity = 1, cylinder_position = 1, state = State.SINGLESHOT})
+
+    --assertWillFire(true)
+    assertPullTrigger(true)
+    assertState({current_capacity = 1, cylinder_position = 2, state = State.SINGLESHOT})
+
+    Tests.log("BANG!")
+    assertShotFired(true)
+    assertState({current_capacity = 0, cylinder_position = 2, state = State.SINGLESHOT,
+        magazine_data = {"Case_357Magnum","Case_357Magnum","Case_357Magnum","Case_357Magnum","Case_357Magnum","Case_357Magnum" }
+    })
+
     Tests.log("Cylinder Empty")
-    for i=1, 6 do
-        assert(firearm_data.magazine_data[i] == "Case_357Magnum", "No empty shell casing detected at cylinder position ".. i)
-    end
-    assertWillFire(false)
+    --assertWillFire(false)
 end)
 
 
