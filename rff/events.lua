@@ -11,15 +11,22 @@ EventTable.MagazineUnload = { }
 EventTable.FirearmReload = { }
 EventTable.FirearmUnload = { }
 EventTable.RoundChambered = { }
-EventTable.PreFire = { }
-EventTable.PostFire = { }
-EventTable.BoltOpen = { }
-EventTable.BoltClose = { }
+
+EventTable.TriggerPulled = { }
+EventTable.ShotFired = { }
+
+EventTable.BoltOpened = { }
+EventTable.BoltClosed = { }
+EventTable.HammerCocked = { }
+EventTable.HammerReleased = { }
+
 
 EventTable.ConfigChange = { }
 EventTable.ConfigReset = { }
 
-
+local ipairs = ipairs
+local table = table
+ 
 local find = function(tbl, value)
     for i,v in ipairs(tbl) do
         if v == value then return i end
