@@ -1,3 +1,13 @@
+--[[- Functions for operation of a firearm.
+
+@module RFF.Firearm.Actions
+@author Fenris_Wolf
+@release 1.0-alpha
+@copyright 2018
+
+]]
+
+
 local Actions = {}
 
 local Ammo = require(ENV_RFF_PATH .. "ammo/init")

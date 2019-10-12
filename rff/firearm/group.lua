@@ -1,3 +1,12 @@
+--[[- Class for organizing firearm group data.
+
+@classmod FirearmGroup
+@author Fenris_Wolf
+@release 1.0-alpha
+@copyright 2018
+
+]]
+
 local FirearmGroup = {}
 local ItemGroup = require(ENV_RFF_PATH .. "item_group")
 

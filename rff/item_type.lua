@@ -6,10 +6,10 @@ such as `RFF.Firearm.FirearmType`, `RFF.Magazine.MagazineType`, `RFF.Ammo.AmmoTy
 This class is responsable for registering items with the RFF core, and providing methods for
 accessing to item's data
 
-    @classmod ItemType
-    @author Fenris_Wolf
-    @release 4.00
-    @copyright 2018 
+@classmod ItemType
+@author Fenris_Wolf
+@release 1.00-alpha
+@copyright 2019
 
 ]]
 

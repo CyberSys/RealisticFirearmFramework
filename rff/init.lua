@@ -1,3 +1,11 @@
+--[[- Main sub-module importer.
+
+@module RFF
+@author Fenris_Wolf
+@release 1.0-alpha
+@copyright 2018
+
+]]
 -- best not to assume our module path is in a standard spot, so check for a global env constant
 if not ENV_RFF_PATH then
     ENV_RFF_PATH = ""

@@ -1,3 +1,11 @@
+--[[- Basic testing framework for automated tests.
+
+@module RFF.Tests
+@author Fenris_Wolf
+@release 1.0-alpha
+@copyright 2019
+
+]]
 local Tests = {}
 
 local total_tests_run = 0

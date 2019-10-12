@@ -1,3 +1,11 @@
+--[[- Various constant values.
+
+@module RFF.Const
+@author Fenris_Wolf
+@release 1.0-alpha
+@copyright 2018
+
+]]
 local Const = { }
 
 --[[- Logging Constants.

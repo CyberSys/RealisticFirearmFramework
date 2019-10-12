@@ -1,8 +1,8 @@
---[[- Flags and functions for defining the current state of a firearm.
+--[[- Bitwise Flags for defining the current state of a firearm.
 
 @module RFF.Firearm.State
 @author Fenris_Wolf
-@release 1.0
+@release 1.0-alpha
 @copyright 2018
 
 ]]

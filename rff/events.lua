@@ -1,3 +1,12 @@
+--[[- Event/Callback system
+
+@module RFF.EventSystem
+@author Fenris_Wolf
+@release 1.0-alpha
+@copyright 2018
+
+]]
+
 local EventSystem = {}
 
 local Logger = require(ENV_RFF_PATH .. "interface/logger")

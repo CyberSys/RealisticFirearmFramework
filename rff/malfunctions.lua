@@ -1,3 +1,12 @@
+--[[- Mechanical and ammunition malfuctions.
+
+@module RFF.Malfuctions
+@author Fenris_Wolf
+@release 1.0-alpha
+@copyright 2018
+
+]]
+
 --[[
     Checking malfunctions depends on a variety of factors:
     over all condition of the firearm

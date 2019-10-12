@@ -1,3 +1,11 @@
+--[[- Bitwise feature flags for firearms.
+
+@module RFF.Firearm.Flags
+@author Fenris_Wolf
+@release 1.0-alpha
+@copyright 2018
+
+]]
 local Flags = {}
 
 --- Design Features Flags

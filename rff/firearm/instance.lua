@@ -1,3 +1,12 @@
+--[[- Functions for manipulating framework data for a specific firearm instance.
+
+@module RFF.Firearm.Instance
+@author Fenris_Wolf
+@release 1.00-alpha
+@copyright 2018
+
+]]
+
 local Instance = {}
 local State = require(ENV_RFF_PATH .. "firearm/state")
 local Flags = require(ENV_RFF_PATH .. "firearm/flags")

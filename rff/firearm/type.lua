@@ -1,3 +1,11 @@
+--[[- Class for specific firearm data templates.
+
+@classmod FirearmType
+@author Fenris_Wolf
+@release 1.0-alpha
+@copyright 2018
+
+]]
 local FirearmType = {}
 local ItemType = require(ENV_RFF_PATH .. "item_type")
 local Flags = require(ENV_RFF_PATH .. "firearm/flags")

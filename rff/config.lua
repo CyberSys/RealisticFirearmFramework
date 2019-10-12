@@ -1,3 +1,12 @@
+--[[- Configuration and settings functions.
+
+@module RFF.Config
+@author Fenris_Wolf
+@release 1.0-alpha
+@copyright 2018
+
+]]
+
 local Config = {}
 
 

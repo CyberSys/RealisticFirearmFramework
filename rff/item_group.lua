@@ -1,8 +1,3 @@
-local ItemGroup = {}
-ItemGroup._GroupTable = {}
-
-local Logger = require(ENV_RFF_PATH .. "interface/logger")
-
 --[[- The RFF.ItemGroup class is a super-class for organizing items and sub-groups.
 
 It is not intended be used directly, but provides a common code base for various subclasses
@@ -11,12 +6,18 @@ such as `RFF.Firearm.FirearmGroup`, `RFF.Magazine.MagazineGroup`, `RFF.Ammo.Ammo
 This class is provides the core functionality spawn calculations, multi-capacity magazines, multiple ammo
 types per gun. To be used in conjunction with the `RFF.ItemType` class
 
-    @classmod Group
-    @author Fenris_Wolf
-    @release 1.00-alpha
-    @copyright 2018
+@classmod ItemGroup
+@author Fenris_Wolf
+@release 1.00-alpha
+@copyright 2019
     
 ]]
+
+local ItemGroup = {}
+ItemGroup._GroupTable = {}
+
+local Logger = require(ENV_RFF_PATH .. "interface/logger")
+
 
 --[[- Creates a new group.
 
@@ -35,7 +36,7 @@ function ItemGroup:new(id, data)
     for key, value in pairs(data or {}) do o[key] = value end
     setmetatable(o, { __index = self })
     o.type = id -- WARNING: DEPRECIATED, replace all instances! 
-    o.id = id
+    o.type_id = id
     
     -- add as a subgroup of specified groups
     for gname, weight in pairs(o.Groups or { }) do
@@ -53,11 +54,26 @@ function ItemGroup:new(id, data)
     return o
 end
 
+--[[- Returns the size of the group.
 
+Note this uses a cached result, incremented and decremented by `ItemGroup:add` and `ItemGroup:remove` 
+
+@treturn integer the number of items or subgroups in the group. 
+
+]]
 function ItemGroup:len()
     return self._size
 end
 
+--[[- Counts the total number of items (not subgroups) in a group.
+
+@tparam[opt] boolean recurse true to recursively count subgroups. default false.
+@tparam[opt] boolean set true to only count items with a weight higher then 0. default false.
+@tparam[opt] integer depth current recursion level. default 0
+
+@treturn integer  
+
+]]
 function ItemGroup:count(recurse, ignore, depth)
     local result = 0
     depth = depth or 0
@@ -81,14 +97,14 @@ end
 
 --[[- Normalizes the weights of items in the group.
 
-This is generally called during `Group.random` and returns a new table instead of
+This is generally called during `ItemGroup.random` and returns a new table instead of
 modifying the existing table which remains in a non-normalized state.
 
-If defined, the filter function should take 3 arguments (self, itemName, weight) and return a float.
+If defined, the filter function should take 3 arguments (self, item_id, weight) and return a float.
 Be aware the filter will be called twice, once during the sum checking phase, and again during
 normalization of the resulting table
 
-@tparam[opt] table modifiers a table containing Group or ItemType names and multipliers
+@tparam[opt] table modifiers a table containing ItemGroup or ItemType id's and multipliers
 @tparam[opt] function filter a function that adds or subtracts to the multiplier
 
 @treturn table a table of normalized values
@@ -99,21 +115,21 @@ function ItemGroup:normalize(modifiers, filter)
     modifiers = modifiers or {}
 
     -- need to loop through our members twice. once to calculate the sum of all values
-    for itemName, weight in pairs(self.members) do
-        local mod = (modifiers[itemName] or 1) + (filter and filter(self, itemName, weight) or 0)
+    for item_id, weight in pairs(self.members) do
+        local mod = (modifiers[item_id] or 1) + (filter and filter(self, item_id, weight) or 0)
         -- TODO: fix year limiter on normalization
-        --local year = (self._ItemTable[itemName] and self._ItemTable[itemName].year) or (self._GroupTable[itemName] and self._GroupTable[itemName].year)
+        --local year = (self._ItemTable[item_id] and self._ItemTable[item_id].year) or (self._GroupTable[item_id] and self._GroupTable[item_id].year)
         --if Settings.LimitYear and Settings.LimitYear ~= 0 and year and year > Settings.LimitYear then mod = 0 end
         sum = sum + weight * mod
     end
     -- second time we can actually set the new values.
     local members = {}
-    for itemName, weight in pairs(self.members) do
-        local mod = ((modifiers[itemName] or 1) + (filter and filter(self, itemName, weight) or 0))
+    for item_id, weight in pairs(self.members) do
+        local mod = ((modifiers[item_id] or 1) + (filter and filter(self, item_id, weight) or 0))
         -- TODO: fix year limiter on normalization
-        --local year = (self._ItemTable[itemName] and self._ItemTable[itemName].year) or (self._GroupTable[itemName] and self._GroupTable[itemName].year)
+        --local year = (self._ItemTable[item_id] and self._ItemTable[item_id].year) or (self._GroupTable[item_id] and self._GroupTable[item_id].year)
         --if Settings.LimitYear and  Settings.LimitYear ~= 0 and year and year > Settings.LimitYear then mod = 0 end
-        members[itemName] = weight * mod  / sum
+        members[item_id] = weight * mod  / sum
     end
     return members
 end
@@ -127,13 +143,13 @@ called.
 
 The effects on spawn tables after calling this function are immediate.
 
-@tparam itemName string the name of the item or sub-group
-@tparam integer the weight of this item in the group
+@tparam string item_id the name of the item or sub-group
+@tparam integer weight the weight of this item in the group
 
 ]]
-function ItemGroup:add(itemName, weight)
-    if not self.members[itemName] then self._size = 1 + self._size end
-    self.members[itemName] = weight or 1
+function ItemGroup:add(item_id, weight)
+    if not self.members[item_id] then self._size = 1 + self._size end
+    self.members[item_id] = weight or 1
 end
 
 
@@ -141,12 +157,12 @@ end
 
 The effects on spawn tables after calling this function are immediate.
 
-@tparam itemName string the name of the item or sub-group
+@tparam item_id string the name of the item or sub-group
 
 ]]
-function ItemGroup:remove(itemName)
-    if self.members[itemName] then self._size = self._size - 1 end
-    self.members[itemName] = nil
+function ItemGroup:remove(item_id)
+    if self.members[item_id] then self._size = self._size - 1 end
+    self.members[item_id] = nil
 end
 
 
@@ -155,7 +171,7 @@ end
 This is generally called during `Group.random` and returns a new table instead of
 modifying the existing table which remains in a non-normalized state.
 
-If defined, the filter function should take 3 arguments (self, itemName, weight) and return a float
+If defined, the filter function should take 3 arguments (self, item_id, weight) and return a float
 
 @tparam[opt] table modifiers a table passed to `Group.normalize`
 @tparam[opt] function filter a function passed to `Group.normalize`
@@ -178,10 +194,10 @@ function ItemGroup:random(modifiers, filter, depth)
     local sum = 0
     local roll = math.random()
     local result = nil
-    for itemName, weight in pairs(members) do
+    for item_id, weight in pairs(members) do
         sum = sum + weight
         if roll <= sum then
-            result = itemName
+            result = item_id
             break
         end
     end
@@ -189,28 +205,28 @@ function ItemGroup:random(modifiers, filter, depth)
     -- check if our result is another Group object, and call recursively
     local group = self._GroupTable[result]
     if group then
-        Logger.verbose("Group: random for '".. self.id .. "' picked '"..group.id .."'")
+        Logger.verbose("Group: random for '".. self.type_id .. "' picked '"..group.type_id .."'")
         return group:random(modifiers, filter, depth)
     end
 
     -- not a Group, return a ItemType
     local result = self._ItemTable[result]
 
-    Logger.verbose("Group: random for '".. self.id .. "' picked '" ..(result and result.id or "nil").. "'")
+    Logger.verbose("Group: random for '".. self.type_id .. "' picked '" ..(result and result.type_id or "nil").. "'")
     return result
 end
 
 
 --[[- Tests (non-recursively) if a Group contains a specified subgroup or itemtype
 
-@tparam itemName string the name of the item or sub-group
+@tparam item_id string the name of the item or sub-group
 
 @treturn bool
 
 ]]
-function ItemGroup:contains(itemName)
-    itemName = type(itemName) == 'table' and itemName.id or itemName
-    return self.members[itemName] ~= nil
+function ItemGroup:contains(item_id)
+    item_id = type(item_id) == 'table' and item_id.type_id or item_id
+    return self.members[item_id] ~= nil
 end
 
 return ItemGroup
