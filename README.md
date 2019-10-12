@@ -31,7 +31,7 @@ It needs to be able to blindly track and pass around variables such as the playe
 ### The Bridge:
 Contains all application specific code. Registers events into RFF's event systems, overwrites the RFF Inferface, and does any application specific requirements such as loading 3d models, UI elements etc.
 
-Beyond callbacks registered to the Event System and Interface overwrites, the RFF core will access any other parts of the Bridge. 
+Beyond callbacks registered to the Event System and Interface overwrites, the RFF core will not access any other parts of the Bridge. 
 
 
 ### The Interface:

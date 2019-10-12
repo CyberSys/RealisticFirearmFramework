@@ -17,4 +17,19 @@ else -- application can overwrite
     end
 end
 
+Bit32.list = function(x)
+    local pos=1 
+    local result={} 
+    while pos <= x do 
+        if bit32.band(pos, x) ~=0 then 
+            table.insert(result, pos) 
+        end
+        pos = pos*2 
+    end
+    return r
+end
+
+
+    
+
 return Bit32
