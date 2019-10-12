@@ -31,4 +31,6 @@ State.FEEDJAMMED = 2048
 -- squib loaded barrel
 State.BARRELJAMMED = 4096 
 
+
+State.FIREMODESTATES = State.SINGLESHOT + State.FULLAUTO + State.BURST2 + State.BURST3
 return State
