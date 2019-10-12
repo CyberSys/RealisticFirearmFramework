@@ -1,0 +1,3 @@
+local MagazineGroup = {}
+
+return MagazineGroup

@@ -1,0 +1,3 @@
+local Magazine = {}
+
+return Magazine

@@ -1,0 +1,3 @@
+local ComponentType = {}
+
+return ComponentType

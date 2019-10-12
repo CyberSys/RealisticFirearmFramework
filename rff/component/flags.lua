@@ -1,0 +1,3 @@
+local Flags = {}
+
+return Flags

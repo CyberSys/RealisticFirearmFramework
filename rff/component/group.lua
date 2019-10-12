@@ -1,0 +1,3 @@
+local ComponentGroup = {}
+
+return ComponentGroup

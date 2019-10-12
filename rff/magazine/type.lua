@@ -1,0 +1,3 @@
+local MagazineType = {}
+
+return MagazineType
