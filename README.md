@@ -6,7 +6,7 @@ This project is in extreme alpha state.
 
 What this project is:
 
-* A evolution of the ORGM mod for Project Zomboid, redesigned to be a application independent framework.
+* A evolution of the [ORGM mod for Project Zomboid](https://github.com/FWolfe/RealGunsMod), redesigned to be a application independent framework.
 
 * A system incorporating realistic firearm mechanics, operation of the weapons, mechanical and ammunition failures, and 
 recalculation of firearm stats based on factors such as current ammo in the chamber (multi ammo types supported), 
