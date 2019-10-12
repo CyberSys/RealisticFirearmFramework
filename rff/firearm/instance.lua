@@ -14,6 +14,47 @@ local Ammo = require(ENV_RFF_PATH .. "ammo/init")
 
 local Bit = require(ENV_RFF_PATH .. "interface/bit32")
 
+--[[
+
+Instance.new(self)
+    local o = { }
+    setmetatable(o, self)
+    self.__index = self
+    return o
+end
+]]
+
+
+Instance.setSelectFireMode = function(firearm_data, fire_mode)
+    firearm_data.state = firearm_data.state - Bit.band(firearm_data.state, FIREMODESTATES) + fire_mode
+end
+
+Instance.isLoaded = function(firearm_data)
+    if firearm_data.chambered_id and not Ammo.isCase(firearm_data.chambered_id) then
+        return true
+    end
+    return firearm_data.current_capacity > 0
+end
+
+Instance.refillAmmo = function(firearm_data, ammo_id, count)
+    --local ammo_group = Ammo.itemGroup(item, true)
+    local ammo_group = Ammo.getGroup(firearm_data.ammo_group)
+    if ammo_id then
+        local ammo_design = Ammo.getData(ammo_id)
+        if not ammo_design:isGroupMember(firearm_data.ammo_group) then return false end
+    else
+        ammo_id = ammo_group:random().type_id
+    end
+    if not count then 
+        count = firearm_data.max_capacity 
+    end
+    for i=1, count do
+        data.magazine_data[i] = ammo_id
+    end
+    -- TODO: validate remaining mag position are empty.
+    data.current_capacity = count
+    data.loaded_ammo_id = ammo_id
+end
 
 
 -- Chamber, or current cylinder position
@@ -49,8 +90,6 @@ Instance.fireAmmoChambered = function(firearm_data)
     local ammo_design = Ammo.getDesign(ammo_id)
     Instance.setAmmoChambered(firearm_data, ammo_design and ammo_design.Case or nil)
 end
-
-
 
 -- Specified magazine or cylinder position
 Instance.setAmmoAtPosition = function(firearm_data, position, ammo_id)
