@@ -325,29 +325,38 @@ Actions.chamberNextRound = function(firearm_data, game_item, game_player, is_fir
     return true
 end
 
-
 --[[- Sets the position of the Select Fire switch.
-local FIREMODESTATES = Status.SINGLESHOT+Status.FULLAUTO+Status.BURST2+Status.BURST3
 
-Fire.set = function(this, mode)
-    if not mode then
+]]
+
+Actions.selectFireMode = function(firearm_data, fire_mode, game_item, game_player, is_firing)
+    if not fire_mode then
         -- find all firing modes allowed
-        local thisData = Firearm.getDesign(this.type)
-        local opt = {}
-        if Firearm.isSemiAuto(this) then table.insert(opt, Status.SINGLESHOT) end
-        if Firearm.isFullAuto(this) then table.insert(opt, Status.FULLAUTO) end
-        if Firearm.is2ShotBurst(this) then table.insert(opt, Status.BURST2) end
-        if Firearm.is3ShotBurst(this) then table.insert(opt, Status.BURST3) end
+        
+        local opt = Bit.list(Bit.band(Flags.SELECTFIRE_MODES, Firearm.getFeatures(firearm_data))) -- 
+        --if Firearm.isSemiAuto(firearm_data) then table.insert(opt, State.SINGLESHOT) end
+        --if Firearm.isFullAuto(firearm_data) then table.insert(opt, State.FULLAUTO) end
+        --if Firearm.is2ShotBurst(firearm_data) then table.insert(opt, State.BURST2) end
+        --if Firearm.is3ShotBurst(firearm_data) then table.insert(opt, State.BURST3) end
         if #opt == 0 then
-            mode = Status.SINGLESHOT
+            fire_mode = State.SINGLESHOT
         else
-            mode = opt[ZombRand(#opt) +1]
+            fire_mode = opt[math.random(#opt)]
         end
     end
-    this.status = this.status - Bit.band(this.status, FIREMODESTATES) + mode
-    return mode
+    Instance.setSelectFireMode(firearm_data, fire_mode)
+    return true
 end
-]]
+
+Actions.setSafety = function(firearm_data, enabled, fire_mode, game_item, game_player, is_firing)
+    Instance.setSafe(enabled)
+    return true
+end
+
+
+
+
+
 
 --[[- Finds and returns the best ammo available in the players inventory.
 
