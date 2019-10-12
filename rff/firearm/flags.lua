@@ -76,7 +76,9 @@ Flags.LONGRECOIL = 2048
 Flags.SHORTRECOIL = 4096
 --- gas fed system with adjustable value
 Flags.GASVALVE = 8192
+--- gun has a rotating bolt
+Flags.ROTATINGBOLT = 16384
 
-
+Flags.SELECTFIRE_MODES = Flags.SEMIAUTO + Flags.FULLAUTO + Flags.BURST2 + Flags.BURST3
 Flags.TRIGGER_TYPES = Flags.SINGLEACTION + Flags.DOUBLEACTION
 return Flags
