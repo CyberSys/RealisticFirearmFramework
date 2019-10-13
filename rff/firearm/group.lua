@@ -16,11 +16,12 @@ setmetatable(FirearmGroup, { __index = ItemGroup })
 -- @section FirearmGroup
 
 
+--[[
 function FirearmGroup:spawn(container, loaded, typeModifiers, flagModifiers, chance, mustFit)
     local firearm = self:random(typeModifiers, flagModifiers)
     return firearm:spawn(container, loaded, chance, mustFit)
 end
---[[
+
 -- bad test. cant import 'Firearm' from here.
 function FirearmGroup:test()
     -- pick a random gun manufactured by colt
