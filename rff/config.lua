@@ -42,6 +42,24 @@ Config.add = function(key, data)
     Settings[key] = data.default
 end
 
+--[[- gets the configuration option table. 
+
+@treturn table
+
+]]
+Config.getOptionsTable = function()
+    return Options
+end
+
+--[[- gets the configuration settings table. 
+
+@treturn table
+
+]]
+Config.getSettingsTable = function()
+    return Settings
+end
+
 --[[- gets a configuration option. 
 
 @tparam string key
@@ -78,7 +96,10 @@ This will trigger the "ConfigChange" event (halts on true).
 
 ]]
 Config.set = function(key, value) 
-    if not Options[key] then return nil end
+    if not Options[key] then 
+        Logger.warn("Config: attempting set unknown key " .. key .. " to " .. tostring(value))
+        return nil 
+    end
     local current = Settings[key]
     Logger.verbose("Config: attempting set " .. key .. " to " .. tostring(value))
 
