@@ -2,7 +2,7 @@
 
 @module RFF.Firearm
 @author Fenris_Wolf
-@release 1.0
+@release 1.0-alpha
 @copyright 2018
 
 ]]

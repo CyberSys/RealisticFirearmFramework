@@ -1,6 +1,6 @@
 local Firearm = {}
 
-Firearm.getRepresentation = function(game_item)
+Firearm.getInstance = function(game_item)
     -- this needs to translate a game object to a RFF representation (a lua table).
     -- for testing purproses it returns itself. For PZ this would be game_item:getModData()
     return game_item
