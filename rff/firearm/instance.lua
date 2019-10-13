@@ -1,5 +1,44 @@
 --[[- Functions for manipulating framework data for a specific firearm instance.
 
+expected instance keys:
+
+* type_id
+
+* state
+
+* features
+
+* feed_system
+
+* ammo_group
+
+* magazine_group
+
+* max_capacity
+
+* current_capacity
+
+* magazine_id
+
+* magazine_contents
+
+* chambered_id
+
+* set_ammo_id
+
+* loaded_ammo_id
+
+* cylinder_position
+
+* rounds_fired
+
+* rounds_since_cleaned
+
+* barrel_length
+
+* _rff_version
+
+
 @module RFF.Firearm.Instance
 @author Fenris_Wolf
 @release 1.00-alpha
@@ -40,7 +79,7 @@ Instance.refillAmmo = function(firearm_data, ammo_id, count)
     --local ammo_group = Ammo.itemGroup(item, true)
     local ammo_group = Ammo.getGroup(firearm_data.ammo_group)
     if ammo_id then
-        local ammo_design = Ammo.getData(ammo_id)
+        local ammo_design = Ammo.getDesign(ammo_id)
         if not ammo_design:isGroupMember(firearm_data.ammo_group) then return false end
     else
         ammo_id = ammo_group:random().type_id
@@ -49,18 +88,18 @@ Instance.refillAmmo = function(firearm_data, ammo_id, count)
         count = firearm_data.max_capacity 
     end
     for i=1, count do
-        data.magazine_data[i] = ammo_id
+        firearm_data.magazine_contents[i] = ammo_id
     end
     -- TODO: validate remaining mag position are empty.
-    data.current_capacity = count
-    data.loaded_ammo_id = ammo_id
+    firearm_data.current_capacity = count
+    firearm_data.loaded_ammo_id = ammo_id
 end
 
 
 -- Chamber, or current cylinder position
 Instance.setAmmoChambered = function(firearm_data, ammo_id)
     if firearm_data.cylinder_position then
-        firearm_data.magazine_data[firearm_data.cylinder_position] = ammo_id
+        firearm_data.magazine_contents[firearm_data.cylinder_position] = ammo_id
         return
     end
     firearm_data.chambered_id = ammo_id
@@ -68,7 +107,7 @@ end
 
 Instance.getAmmoChambered = function(firearm_data)
     if firearm_data.cylinder_position then
-        return firearm_data.magazine_data[firearm_data.cylinder_position]
+        return firearm_data.magazine_contents[firearm_data.cylinder_position]
     end
     return firearm_data.chambered_id
 end
@@ -80,7 +119,7 @@ end
 
 Instance.delAmmoChambered = function(firearm_data)
     if firearm_data.cylinder_position then
-        firearm_data.magazine_data[firearm_data.cylinder_position] = nil
+        firearm_data.magazine_contents[firearm_data.cylinder_position] = nil
     end
     firearm_data.chambered_id = nil
 end
@@ -93,44 +132,44 @@ end
 
 -- Specified magazine or cylinder position
 Instance.setAmmoAtPosition = function(firearm_data, position, ammo_id)
-    firearm_data.magazine_data[position] = ammo_id
+    firearm_data.magazine_contents[position] = ammo_id
 end
 
 Instance.getAmmoAtPosition = function(firearm_data, position)
-    return firearm_data.magazine_data[position] -- arrays start at 1
+    return firearm_data.magazine_contents[position] -- arrays start at 1
 end
 
 Instance.isAmmoAtPosition = function(firearm_data, position)
-    local ammo_id = firearm_data.magazine_data[position]
+    local ammo_id = firearm_data.magazine_contents[position]
     return ammo_id and Ammo.isAmmo(ammo_id) or false
 end
 
 Instance.delAmmoAtPosition = function(firearm_data, position)
-    firearm_data.magazine_data[position] = nil
+    firearm_data.magazine_contents[position] = nil
 end
 
 -- convert this spot to a shell casing
 Instance.fireAmmoAtPosition = function(firearm_data, position)
-    local ammo_id = firearm_data.magazine_data[position]
+    local ammo_id = firearm_data.magazine_contents[position]
     local ammo_design = Ammo.getDesign(mag_data[position])
-    firearm_data.magazine_data[position] = ammo_design and ammo_design.Case or nil
+    firearm_data.magazine_contents[position] = ammo_design and ammo_design.Case or nil
 end
 
 
 -- Top of the magazine or next cylinder postion
 Instance.setAmmoAtNextPosition = function(firearm_data, ammo_id)
     if firearm_data.cylinder_position then
-        firearm_data.magazine_data[(firearm_data.cylinder_position % firearm_data.max_capacity) +1] = ammo_id
+        firearm_data.magazine_contents[(firearm_data.cylinder_position % firearm_data.max_capacity) +1] = ammo_id
         return 
     end
-    firearm_data.magazine_data[firearm_data.current_capacity] = ammo_id
+    firearm_data.magazine_contents[firearm_data.current_capacity] = ammo_id
 end
 
 Instance.getAmmoAtNextPosition = function(firearm_data)
     if firearm_data.cylinder_position then
-        return firearm_data.magazine_data[(firearm_data.cylinder_position % firearm_data.max_capacity) +1]
+        return firearm_data.magazine_contents[(firearm_data.cylinder_position % firearm_data.max_capacity) +1]
     end
-    return firearm_data.magazine_data[firearm_data.current_capacity]
+    return firearm_data.magazine_contents[firearm_data.current_capacity]
 end
 
 Instance.isAmmoAtNextPosition = function(firearm_data)
@@ -155,7 +194,7 @@ end
 
 Instance.hasCases = function(firearm_data)
     local count = 0
-    for index, ammo_id in pairs(firearm_data.magazine_data) do
+    for index, ammo_id in pairs(firearm_data.magazine_contents) do
         if ammo_id and Ammo.isCase(ammo_id) then
             count = 1 + count
         end
@@ -231,14 +270,15 @@ end
 
 Instance.setMagazineEmpty = function(firearm_data)
     for index = 1, firearm_data.max_capacity do
-        firearm_data.magazine_data[index] = nil
+        firearm_data.magazine_contents[index] = nil
     end
     firearm_data.loaded_ammo_id = nil
     firearm_data.current_capacity = 0    
 end
 
-Instance.getMagazineData = function(firearm_data)
-    return firearm_data.magazine_data
+Instance.getMagazineData = function(firearm_data) 
+    -- TODO: should return full data not just contents
+    return firearm_data.magazine_contents
 end
 
 Instance.isFeedMode = function(firearm_data, feed_mode)

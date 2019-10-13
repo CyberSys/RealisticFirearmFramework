@@ -69,10 +69,11 @@ Tests.run("Spawning", function()
     
     -- TODO: proper loading
     Tests.log("Initializing hack reload..")
-    for i=1, firearm_data.max_capacity do
-        firearm_data.magazine_data[i] = "Ammo_357Magnum_HP"
-    end
-    firearm_data.current_capacity = firearm_data.max_capacity
+    Instance.refillAmmo(firearm_data, "Ammo_357Magnum_HP")
+    --for i=1, firearm_data.max_capacity do
+    --    firearm_data.magazine_contents[i] = "Ammo_357Magnum_HP"
+    --end
+    --firearm_data.current_capacity = firearm_data.max_capacity
     --assert(Actions.willFire(firearm_data, nil, nil), "willFire returned false", true)
 
     Tests.log("Firearm loaded and ready to fire.")
@@ -127,7 +128,7 @@ Tests.run("Firing", function()
      -- Actions.shotFired(firearm_data, nil, nil, true)
     assertShotFired(true)
     assertState({current_capacity = 5, cylinder_position = 3, state = State.SINGLESHOT, 
-        magazine_data = {[3] = "Case_357Magnum" }
+        magazine_contents = {[3] = "Case_357Magnum" }
     })
 
     Tests.log("Fire successful. Empty casing detected in cylinder.")
@@ -139,7 +140,7 @@ Tests.run("Firing", function()
     Tests.log("BANG!")
     assertShotFired(true)
     assertState({current_capacity = 4, cylinder_position = 4, state = State.SINGLESHOT,
-        magazine_data = { [4] = "Case_357Magnum" }
+        magazine_contents = { [4] = "Case_357Magnum" }
     })
     
     Tests.log("Emptying cylinder...")
@@ -167,7 +168,7 @@ Tests.run("Firing", function()
     Tests.log("BANG!")
     assertShotFired(true)
     assertState({current_capacity = 0, cylinder_position = 2, state = State.SINGLESHOT,
-        magazine_data = {"Case_357Magnum","Case_357Magnum","Case_357Magnum","Case_357Magnum","Case_357Magnum","Case_357Magnum" }
+        magazine_contents = {"Case_357Magnum","Case_357Magnum","Case_357Magnum","Case_357Magnum","Case_357Magnum","Case_357Magnum" }
     })
 
     Tests.log("Cylinder Empty")

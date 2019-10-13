@@ -174,7 +174,7 @@ function FirearmType:setup(data_table)
         -- data_table.magazine_type = mag.type_id
         -- data_table.max_capacity = mag.max_capacity
     else -- sanity check when resetting to default
-        data_table.magazine_type = nil
+        data_table.magazine_id = nil
     end
 
     --data_table.speedLoader = self.speedLoader -- speedloader/stripperclip name
@@ -221,7 +221,7 @@ function FirearmType:setup(data_table)
     --end
     data_table.state = state
 
-    data_table.magazine_data = {} -- current rounds, LIFO list
+    data_table.magazine_contents = {} -- current rounds, LIFO list
     -- data_table.strictAmmoType = nil -- preferred ammo type, this is set by the UI context menu
     -- last round the stats were set to, used for knowing what to eject, and if we should change weapon stats when chambering next round
     data_table.set_ammo_id = nil
@@ -246,5 +246,36 @@ function FirearmType:usesMagazines()
     return self.magazine_group
 end
 
+--[[
 
+function FirearmType:spawn(container, loaded, chance, mustFit)
+    if chance and ZombRand(100)+1 <= chance * ZomboidGlobals.WeaponLootModifier * Settings.FirearmSpawnModifier then
+        return nil
+    end
+    local item = InventoryItemFactory.CreateItem("ORGM.".. self.type)
+    if mustFit and not container:hasRoomFor(nil, item:getActualWeight()) then
+		return nil
+	end
+
+    self:setup(item)
+
+    -- set the serial number
+    local sn = {}
+    for i=1, 6 do sn[i] = tostring(ZombRand(10)) end
+    item:getModData().serialnumber = table.concat(sn, '')
+
+    if loaded then
+        local count = self.maxCapacity
+        if ZombRand(100) < 50 then count = ZombRand(self.maxCapacity)+1 end
+    end
+    Firearm.refill(item, count)
+    Firearm.Stats.set(item)
+    if container then
+        container:AddItem(item)
+    end
+    return item
+end
+
+
+]]
 return FirearmType
