@@ -74,14 +74,15 @@ Stats.calculatePercivedRecoil = function(firearm_data)
 end
 Stats.calculateMuzzleRise = function(firearm_data)
     -- Factors such as barrel porting, firearm design (barrel above piviot point etc)
-    -- Retturns a abstract number
+    -- Returns a abstract number
 end
 
 -- speed values
 Stats.calculateAimingSpeed = function(firearm_data)
     -- Assuming the gun is pointed in the general direction, how fast can the gun be sighted directly onto target?
     -- Effected by optics and range to target. Iron sights longer to aim at farther targets, while scopes have 
-    -- a reverse effect. During followup shots, Muzzle Rise and Recoil effect Aiming Speed (rise has more of a effect)
+    -- a reverse effect. Should possibly be mutliple values, short/medium/long range etc. 
+    -- During followup shots, Muzzle Rise and Recoil effect Aiming Speed (rise has more of a effect)
     -- Returns a abstract number 
 end
 Stats.calculateReactionSpeed = function(firearm_data)
@@ -118,7 +119,26 @@ end
 -- misc values
 Stats.calculateSoundDB = function(firearm_data)
     -- Sound decibel levels. Barrel length, feed system, ammo features, and barrel attachments (suppressors, porting).
-    -- Returns a real number.
+    -- This is highly subjective dependent on position of the listener relative to barrel. assmume 1m to front and side.
+    -- Returns a real number. (dB)
+    
+    -- most sources favor:
+    -- 130dB - 140db .22LR rifles, 150+ pistols
+    -- pistol and mid length rifles calibers mostly rate 155dB - 160dB
+    -- shotguns rate generally 150db - 160db (18" - 28"), .410s and 20gu dont drop as much
+    
+    -- Note here: https://www.ammunitiontogo.com/lodge/silencer-guide-with-decibel-level-testing/ seems to show much higher
+    -- results then most (testing differences?)
+    
+    -- +3db noticeable difference, +10db is double volume
+
+    -- suppressors reduce noise from the blast 25db - 40db
+    
+    -- sonic crack varies from 140db - 150db (even for .22LR)
+    -- sound barrier depends on temperature. (http://www.sengpielaudio.com/calculator-speedsound.htm)
+    
+    -- sound loses 6db per doubling of distance. assume returned value is 1m from barrel, so 2m = -6, 4 = -12, 8m =-16.
+    -- db = db + 20*math.log10(distance1, distance2)
 end
 
 return Stats
