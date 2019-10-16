@@ -70,7 +70,7 @@ end
 Util.convMilimetersInches = function(milimeters)
     return milimeters * 0.03937007874
 end
-Util.InchesMilimeters = function(inches)
+Util.convInchesMilimeters = function(inches)
     return inches * 25.4
 end
 
