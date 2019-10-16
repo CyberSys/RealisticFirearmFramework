@@ -38,7 +38,6 @@ expected instance keys:
 
 * _rff_version
 
-
 @module RFF.Firearm.Instance
 @author Fenris_Wolf
 @release 1.00-alpha
@@ -361,6 +360,71 @@ end
 
 Instance.setSafe = function(firearm_data, enabled)
     return Instance.setState(firearm_data, State.SAFETY, enabled)
+end
+
+--------------------------------------------------
+
+Instance.getMechanicalAccuracy = function(firearm_data)
+    return firearm_data.stats.accuracy_mechanical
+end
+Instance.getPrecivedAccuracy = function(firearm_data)
+    return firearm_data.stats.accuracy_precived
+end
+Instance.getAccuracy = function(firearm_data)
+    return firearm_data.stats.accuracy_mechanical + firearm_data.stats.accuracy_precived
+end
+
+Instance.getProjectileVelocity = function(firearm_data)
+    return firearm_data.stats.projectile_velocity
+end
+Instance.getProjectileEnergy = function(firearm_data)
+    return firearm_data.stats.projectile_energy
+end
+Instance.getProjectileDamage = function(firearm_data)
+    return firearm_data.stats.projectile_damage
+end
+Instance.getProjectilePenetration = function(firearm_data)
+    return firearm_data.stats.projectile_penetration
+end
+Instance.getEffectiveRange = function(firearm_data)
+    return firearm_data.stats.range_effective
+end
+Instance.getMaximumRange = function(firearm_data)
+    return firearm_data.stats.range_maximum
+end
+
+Instance.getMechanicalRecoil = function(firearm_data)
+    return firearm_data.stats.recoil_mechanical
+end
+Instance.getPercivedRecoil = function(firearm_data)
+    return firearm_data.stats.recoil_percived
+end
+Instance.getMuzzleRise = function(firearm_data)
+    return firearm_data.stats.recoil_muzzle_rise
+end
+
+Instance.getAimingSpeed = function(firearm_data)
+    return firearm_data.stats.speed_aiming
+end
+Instance.getReactionSpeed = function(firearm_data)
+    return firearm_data.stats.speed_reaction
+end
+Instance.getManuverability = function(firearm_data)
+    return firearm_data.stats.speed_manuverability
+end
+Instance.getRateOfFire = function(firearm_data)
+    return firearm_data.stats.speed_rate_of_fire
+end
+
+Instance.getMechanicalAccuracy = function(firearm_data)
+    return firearm_data.stats.accuracy_mechanical
+end
+Instance.getPrecivedAccuracy = function(firearm_data)
+    return firearm_data.stats.accuracy_percived
+end
+
+Instance.getSoundDBLevel = function(firearm_data)
+    return firearm_data.stats.sound_db_level
 end
 
 
