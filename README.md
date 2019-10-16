@@ -8,15 +8,18 @@ What this project is:
 
 * A evolution of the [ORGM mod for Project Zomboid](https://github.com/FWolfe/RealGunsMod), redesigned to be a application independent framework.
 
-* A system incorporating realistic firearm mechanics, operation of the weapons, mechanical and ammunition failures, and 
-recalculation of firearm stats based on factors such as current ammo in the chamber (multi ammo types supported), 
-weight of attachments absorbing recoil, and much more.
+* A system incorporating realistic firearm mechanics (mechanical function), operation of the weapons, and mechanical and ammunition failures.
+
+* Provides dynamic recalculation of firearm stats based on factors such as current ammo in the chamber (multi ammo types supported), 
+weight of attachments absorbing recoil, many additional stats. Barrel length alone effects range, damage, sound, manoeuvrability and reaction time.
 
 * Abstract enough potential uses include anything from 3d shooters to 2d turn based games. 
 
 What this project is **NOT**:
 
-* A scientific simulation of ballistic performance
+* A scientific simulation of ballistic performance. Values produced by this framework should be in no way considered real. In many ways it is a over simplification. However bringing this values as close to real as possible is a goal.
+
+* Complete. Pre-alpha status.  
 
 The Framework is made up of several components:
 
