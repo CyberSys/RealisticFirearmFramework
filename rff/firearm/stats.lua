@@ -9,6 +9,10 @@ have been simplified.
 ]]
 local Stats = {}
 
+
+
+-- local functions
+
 --[[ Gets the balistics curve value for the specified barrel length. 
 
 The ballistics curve is a cheap hack to increase/decrease values like projectile velocity
@@ -104,9 +108,15 @@ Stats.calculate = function(firearm_data)
     Stats.calculateSoundDB(firearm_data)
 end
 
+
+-- --------------------------------------------------------------
+--- Ballistic Values
+-- @section ballistics
+
+
 -- --------------
--- ballistic values
--- --------------
+-- Projectile Velocity
+
 --[[- Calculates the projectile velocity at muzzle.
 
 Factors such barrel and ammo qualities, as well as firearm feed system effect velocity. 
@@ -127,8 +137,11 @@ Stats.setProjectileVelocity = function(firearm_data, value)
     firearm_data.stats.projectile_velocity = value
 end
 
+
 -- --------------
---[[- Calculates the projectile energy at muzzle.
+-- Projectile Energy
+
+--[[- Calculates the projectile energy at muzzle in ft/lbs.
 
 Calculates energy based on velocity and mass.
 
@@ -150,6 +163,8 @@ end
 
 
 -- --------------
+-- Projectile Damage (HITS) 
+
 --[[- Calculates the raw damage (or HITS value), at muzzle.
 
 Uses the HITS (Hornady Index of Terminal Standards) as base damage, modified by 
@@ -173,6 +188,8 @@ end
 
 
 -- --------------
+-- Projectile Penetration
+
 --[[- Calculates penetration values, as a function of bullet Sectional Density.
 
 Uses SI (sectional density) as base value, adjusted by projectile velocity and design features.
@@ -192,7 +209,10 @@ Stats.setProjectilePenetration = function(firearm_data, value)
     firearm_data.stats.projectile_penetration = value
 end
 
+
 -- --------------
+-- Maximum Range
+
 --[[- Calculates maximum range.
 
 Primarily for non-physics engines. Bullet should not travel past this point
@@ -211,7 +231,10 @@ Stats.setMaximumRange = function(firearm_data, value)
     firearm_data.stats.range_maximum = value
 end
 
+
 -- --------------
+-- Effective Maximum Range
+
 --[[- Calculates effective maximum range.
 
 Primarily for non-physics engines. Bullet accuracy and damage severely reduced past this point.
@@ -230,9 +253,15 @@ Stats.setEffectiveRange = function(firearm_data, value)
     firearm_data.stats.range_effective = value
 end
 
+
+
+-- --------------------------------------------------------------
+--- Recoil Values
+-- @section Recoil
+
 -- --------------
--- recoil values
--- --------------
+-- Mechanical Recoil
+
 --[[- Calculates the mechanical recoil energy of a firearm in ft/lbs.
 
 Factors in chamber pressure, feed system (auto with gas tubes vs bolt action) and weight of the weapon
@@ -270,6 +299,8 @@ end
 
 
 -- --------------
+-- Perceived Recoil
+
 --[[- Calculates the 'felt' recoil in ft/lbs.
 
 Includes mechanical recoil, and components such as recoil pads and grips, as well as additional firearm features.
@@ -288,7 +319,10 @@ Stats.setPercivedRecoil = function(firearm_data, value)
     firearm_data.stats.recoil_percived = value
 end
 
+
 -- --------------
+-- Muzzle Rise
+
 --[[- Calculates the muzzle rise in degrees centered on the grip (pivot point). 
 
 Includes components and features such as barrel porting, barrels (force centers) higher then the pivot point,
@@ -308,9 +342,14 @@ Stats.getMuzzleRise = function(firearm_data, value)
     firearm_data.stats.recoil_muzzle_rise = value
 end
 
+
+-- --------------------------------------------------------------
+--- Speed Values
+-- @section Speed
+
+
 -- --------------
--- speed values
--- --------------
+-- Sight Speed
 
 --[[- Calculates the sighting speed of the weapon.
 
@@ -332,20 +371,22 @@ During followup shots, Muzzle Rise and Recoil have a large effect on time.
 Stats.calculateSightSpeed = function(firearm_data)
 end
 
+
 -- --------------
+-- Reaction Speed
+
 --[[- Calculates the reaction speed of a weapon in seconds.
 
+A measure of how fast this weapon can be trained on target from a neutral position.
+Factors weight and weapon length. Generally combined with Sight Speed
+
+calc reaction time 0.2 to 0.3s "Unit of Human Reaction” (UHR). This should be a function of the player obj.
+calc motion time = 0.4 to 1.1s average for a lightweight pistol depending on training and reflex, assume gun is in hand already
+motion time needs to be modified by weight and length, and firing stance (hip shots vs proper stances) 
 
 ]]
 Stats.calculateReactionSpeed = function(firearm_data)
-    -- A measure of how fast this weapon can be trained on target from a neutral position.
-    -- Factors weight and weapon length. Generally combined with Sight Speed
-    -- Returns a real number (seconds).
-
-    -- calc reaction time 0.2 to 0.3s "Unit of Human Reaction” (UHR). This should be a function of the player obj.
-    -- calc motion time = 0.4 to 1.1s average for a lightweight pistol depending on training and reflex, assume gun is in hand already
-    -- motion time needs to be modified by weight and length, and firing stance (hip shots vs proper stances) 
-    
+    return 0
 end
 Stats.getReactionSpeed = function(firearm_data)
     return firearm_data.stats.speed_reaction
@@ -354,11 +395,14 @@ Stats.setReactionSpeed = function(firearm_data, value)
     firearm_data.stats.speed_reaction = value
 end
 
+
 -- --------------
+-- Transition Speed
+
 --[[ Calculates the transition speed of a weapon in seconds.
 
 Assuming the gun is in firing postiion, how fast can can it be transitioned to targets?
-How easy the weapon is to operate while moving or in CQB. Primarly based on Reaction Speed and Sight Speed
+How easy the weapon is to operate while moving or in CQB. Primarly based on Reaction Speed.
 
 ]]
 Stats.calculateTranistionSpeed = function(firearm_data)
@@ -390,9 +434,13 @@ end
 
 
 
+-- --------------------------------------------------------------
+--- Accuracy Values
+-- @section Accuracy
+
 -- --------------
--- accuracy values
--- --------------
+-- Mechanical Accuracy
+
 --[[- Calculates the mechanical accuracy of the firearm and returns a 'MoA' rating.
 
 Barrel and bullet qualities as well as some firearm feed system qualities. 
@@ -415,9 +463,12 @@ end
 
 
 -- --------------
+-- Perceived Accuracy
+
 --[[- Calculates the perceived accuracy of a firearm, as a modifier to the mechanical accuracy
 
-Includes Sight radius, sighting system features and firearm feed system qualities (additional mechanical movement).
+Includes Sight radius, sighting system features, firearm feed system qualities, additional mechanical movement such as 
+trigger jerk.
 
 For followup shots firing too soon (aka full auto) would include recoil and rise factors.
 
@@ -432,10 +483,15 @@ Stats.setPerceivedAccuracy = function(firearm_data, value)
     firearm_data.stats.accuracy_percived = value
 end
 
+
+
+-- --------------------------------------------------------------
+--- Misc Values
+
 -- --------------
--- misc values
--- --------------
---[[ Calculates the sound levels as decibels.
+-- Sound dB levels
+
+--[[- Calculates the sound levels as decibels.
 
 Barrel length, feed system, ammo features, and barrel attachments (suppressors, porting) have a effect.
 Since volume levels are highly subjective dependent on position of the listener relative to barrel. 
