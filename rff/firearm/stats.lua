@@ -8,9 +8,9 @@ have been simplified.
 
 ]]
 local Stats = {}
-
-
-
+local Ammo = require(ENV_RFF_PATH .. "ammo/init")
+local Instance = require(ENV_RFF_PATH .. "firearm/instance")
+local Util = require(ENV_RFF_PATH .. "util")
 -- local functions
 
 --[[ Gets the balistics curve value for the specified barrel length. 
@@ -23,21 +23,22 @@ seems to be a close match to most caliber velocity and energy curves.
 The returned float can be used as a multiplier for stats based on barrel length. The closer the 2 inputs the higher 
 the returned value is. The shorter the barrel length becomes, the more extreme the effect becomes (lower return value)  
 
-@tparam float curve_point_length the 'ideal' length to produce maximum results (100% powder burn)
+@tparam float curve_length the 'ideal' length to produce maximum results (100% powder burn)
 @tparam float barrel_length the length of the barrel
 @tretun float a number between 0 to 1 
 
 ]]
-local calculateBallisticsCurve = function(curve_point_length, barrel_length)
-    return ((((curve_point_length - barrel_length) / curve_point_length)^3)^2)
+local calculateBallisticsCurve = function(curve_length, barrel_length)
+    return ((((curve_length - barrel_length) / curve_length)^3)^2)
 end
 
 --[[ Reverse of `calculateBallisticsCurve()`.
 
+reverse calculation, get the curve point length from the curve value
+
 @tparam float curve_value the value returned by `calculateBallisticsCurve()`
 @tparam float barrel_length the length of the barrel
-@treturn float the `curve_point_length` value passed into `calculateBallisticsCurve()`
-reverse calculation, get the curve point length from the curve value
+@treturn float the `curve_length` value passed into `calculateBallisticsCurve()`
 
 ]]
 local calculateBallisticsCurvePoint = function(curve_value, barrel_length)
@@ -77,35 +78,43 @@ end
 ]]
 Stats.calculate = function(firearm_data)
     -- get current ammo design specs and status flags
+    local ammo_id = Instance.getSetAmmo(firearm_data)
+    local ammo_design = Ammo.get(ammo_id)
+    local curve_length = ammo_design.curve_length -- 30 pistols, 80 rifles, 60 shotguns etc
+    
+    -- note: this really needs to add a few extra inches to both or subnoses go screwy. 
+    local curve_point = calculateBallisticsCurve(curve_length, Instance.getBarrelLength(firearm_data))
     -- get firearm design specs
     -- calculate overall weight
     -- calculate bonus from components and attachments (this should be cached. only recalc when the gun is modified) 
     
     -- first calculate ballisitc values.
-    Stats.calculateProjectileVelocity(firearm_data)
-    Stats.calculateProjectileEnergy(firearm_data)
-    Stats.calculateProjectileDamage(firearm_data)
-    Stats.calculateProjectilePenetration(firearm_data)
-    Stats.calculateEffectiveRange(firearm_data)
-    Stats.calculateMaximumRange(firearm_data)
+    local stats = firearm_data.stats
+    
+    stats.projectile_velocity = Stats.calculateProjectileVelocity(firearm_data, ammo_design)
+    stats.projectile_energy = Stats.calculateProjectileEnergy(firearm_data, ammo_design)
+    stats.projectile_damage = Stats.calculateProjectileDamage(firearm_data, ammo_design)
+    stats.projectile_penetration = Stats.calculateProjectilePenetration(firearm_data, ammo_design)
+    stats.range_effective = Stats.calculateEffectiveRange(firearm_data, ammo_design)
+    stats.range_maximum = Stats.calculateMaximumRange(firearm_data, ammo_design)
 
     -- second calculate recoil values
-    Stats.calculateMechanicalRecoil(firearm_data)
-    Stats.calculatePerceivedRecoil(firearm_data)
-    Stats.calculateMuzzleRise(firearm_data)
+    stats.recoil_mechanical = Stats.calculateMechanicalRecoil(firearm_data)
+    stats.recoil_percived = Stats.calculatePerceivedRecoil(firearm_data)
+    stats.recoil_muzzle_rise = Stats.calculateMuzzleRise(firearm_data)
     
     -- third calculate 'speed' values
-    Stats.calculateSightSpeed(firearm_data)
-    Stats.calculateReactionSpeed(firearm_data)
-    Stats.calculateTranistionSpeed(firearm_data)
+    stats.speed_sight = Stats.calculateSightSpeed(firearm_data)
+    stats.speed_reaction = Stats.calculateReactionSpeed(firearm_data)
+    stats.speed_transition = Stats.calculateTranistionSpeed(firearm_data)
     --Stats.calculateRateOfFire(firearm_data)
     
     -- now accuracy values
-    Stats.calculateMechanicalAccuracy(firearm_data)
-    Stats.calculatePerceivedAccuracy(firearm_data)
+    stats.accuracy_mechanical = Stats.calculateMechanicalAccuracy(firearm_data)
+    stats.accuracy_percived = Stats.calculatePerceivedAccuracy(firearm_data)
      
     -- finally misc values
-    Stats.calculateSoundDB(firearm_data)
+    stats.sound_db_level = Stats.calculateSoundDB(firearm_data)
 end
 
 
@@ -126,7 +135,15 @@ Combined with bullet mass and design features to calculate range, damage and mec
 @treturn float feet-per-second (meters-per-second?)
 
 ]]
-Stats.calculateProjectileVelocity = function(firearm_data)
+Stats.calculateProjectileVelocity = function(firearm_data, ammo_design)
+    -- get ammo powder type and charge levels.
+    -- check bullet powder consistancy levels
+    -- get barrel leade, and check bullet seating (too much leade, low pressure & velocity, too little = extreme pressure and higher velocity) 
+        -- (might have to skip this one, it will constantly trigger full stat changes)
+    -- calc velocity at max curve length 
+    -- get barrel length and adjust by feed system, barrel features (chrome lined, dirt levels, condition) 
+    -- calc curve point
+    -- calc new velocity
     return 0
 end
 
@@ -149,14 +166,15 @@ Calculates energy based on velocity and mass.
 @treturn float energy in ft/lbs.
 
 ]]
-Stats.calculateProjectileEnergy = function(firearm_data)
+Stats.calculateProjectileEnergy = function(firearm_data, ammo_design)
     -- energy (ft/lbs) = bullet mass (grains) * (velocity^2) / 450437
-    return 0
+    return ammo_design.bullet_mass * (firearm_data.stats.projectile_velocity ^ 2) / 450437
 end
 
 Stats.getProjectileEnergy = function(firearm_data)
     return firearm_data.stats.projectile_energy
 end
+
 Stats.setProjectileEnergy = function(firearm_data, value)
     firearm_data.stats.projectile_energy = value
 end
@@ -174,9 +192,11 @@ additional bullet design features.
 @treturn float damage in HITS rating.
 
 ]]
-Stats.calculateProjectileDamage = function(firearm_data)
+Stats.calculateProjectileDamage = function(firearm_data, ammo_design)
     -- hits = (weight in grains ^ 2) * velocity / (diameter in inches ^ 2) / 700000
-    return 0
+    local damage = (ammo_design.bullet_mass ^ 2) * firearm_data.stats.projectile_velocity / (ammo_design.diameter ^ 2) / 700000
+    -- adjust here by design features.
+    return damage
 end
 
 Stats.getProjectileDamage = function(firearm_data)
@@ -198,9 +218,11 @@ Uses SI (sectional density) as base value, adjusted by projectile velocity and d
 @treturn float result in abstracted SI value.
 
 ]]
-Stats.calculateProjectilePenetration = function(firearm_data)
+Stats.calculateProjectilePenetration = function(firearm_data, ammo_design)
     -- SI = (grains / 7000) / (diameter ^ 2)
-    return 0
+    local si = (ammo_design.bullet_mass / 7000) / (ammo_design.diameter ^ 2)
+    -- adjust here for velocity and features
+    return si
 end
 Stats.getProjectilePenetration = function(firearm_data)
     return firearm_data.stats.projectile_penetration
@@ -287,6 +309,9 @@ Stats.calculateMechanicalRecoil = function(firearm_data)
             return 0.5 * ((((mp*vp)+(mc*vc)) / 1000 )^2) /mgu
         end
 
+        Free recoil has its drawbacks for our use. It doesn't factor recoil from escaping gas 
+        (shorter barrel = lower velocity = lower recoil)
+        
     ]]
     return 0
 end
