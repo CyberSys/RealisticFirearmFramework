@@ -58,7 +58,7 @@ Status.BULLETDEFORMED = 2048 -- bullet is slightly deformed. possible feeding/pe
 local check = function(firearm_data, game_item, game_player, is_firing, ...)
     --if not Settings.JammingEnabled then return false end
     local gunData = Firearm.get(firearm_data.type)
-    local ammoData = Ammo.getDesign(ammoType)
+    local ammoData = Ammo.get(ammoType)
     for i, failure in ipairs({select(1, ...)}) do repeat
         if failure:onEvent(firearm_data, game_item, game_player, is_firing) then
             return true

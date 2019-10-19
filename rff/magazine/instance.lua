@@ -17,7 +17,7 @@ Instance.refillAmmo = function(magazine_data, ammo_id, count)
     --local ammo_group = Ammo.itemGroup(item, true)
     local ammo_group = Ammo.getGroup(magazine_data.ammo_group)
     if ammo_id then
-        local ammo_design = Ammo.getData(ammo_id)
+        local ammo_design = Ammo.get(ammo_id)
         if not ammo_design:isGroupMember(magazine_data.ammo_group) then return false end
     else
         ammo_id = ammo_group:random().type_id
@@ -54,7 +54,7 @@ end
 -- convert this spot to a shell casing
 Instance.fireAmmoAtPosition = function(magazine_data, position)
     local ammo_id = magazine_data.magazine_contents[position]
-    local ammo_design = Ammo.getDesign(mag_data[position])
+    local ammo_design = Ammo.get(mag_data[position])
     magazine_data.magazine_contents[position] = ammo_design and ammo_design.Case or nil
 end
 
@@ -79,7 +79,7 @@ end
 
 Instance.fireAmmoAtNextPosition = function(magazine_data)
     local ammo_id = Instance.getAmmoAtNextPosition(magazine_data)
-    local ammo_design = Ammo.getDesign(ammo_id)
+    local ammo_design = Ammo.get(ammo_id)
     Instance.setAmmoAtNextPosition(magazine_data, ammo_design and ammo_design.Case or nil)
 end
 

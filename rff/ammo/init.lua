@@ -99,7 +99,7 @@ end
 @treturn table data of a registered ammo setup by `Ammo.register`
 
 ]]
-Ammo.getDesign = function(design_id)
+Ammo.get = function(design_id)
     return AmmoTable[design_id]
 end
 
