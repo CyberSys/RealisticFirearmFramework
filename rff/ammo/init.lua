@@ -28,16 +28,11 @@ AmmoType._ItemTable = AmmoTable
 
 -- TODO: move this to the file?
 AmmoType._PropertiesTable = {
-    MinDamage = {type='float', min=0, max=100, default=0.2},
-    MaxDamage = {type='float', min=0, max=100, default=1},
-    Range = {type='integer', min=0, max=100, default=20},
-    Weight = {type='float', min=0, max=100, default=0.01},
-    Recoil = {type='float', min=0, max=100, default=20},
-    Penetration = {type='integer', min=0, max=100, default=0},
-    MaxHitCount = {type='integer', min=1, max=100, default=1},
-    BoxCount = {type='integer', min=0, default=20},
-    CanCount = {type='integer', min=0, default=200},
-    Icon = {type='string', default=nil},
+    case = {type='string', required=true },
+    case_mass = {type='float', min=0, required=true }, -- total weight of the round, in grains    
+    bullet_mass = {type='float', min=0, default=55, required=true}, -- bullet mass, in grains
+    powder_mass = {type='float', min=0, default=55, required=true}, -- powder charge, in grains
+    powder_type = {type='string', required=true},
     category = {type='integer', min=Flags.PISTOL, max=Flags.SHOTGUN, default=Flags.PISTOL, required=true},
     features = {type='integer', min=0, default=0, required=true},
 }
