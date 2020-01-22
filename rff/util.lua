@@ -40,39 +40,8 @@ end
 
 Util.isSuperSonic = function(speed, temp)
     -- speed is projectile vel in meters per sec, temp is C
-    local sound = (331.3+0.606 * temp) 
+    local sound = (331.3+0.606 * temp)
     return speed >= sound 
 end
-
-
--- Converters
-Util.convCelsiusFahrenheit = function(celsius)
-    return celsius * 1.8 + 32
-end
-Util.convFahrenheitCelsius = function(fahrenheit)
-    return (fahrenheit - 32) / 1.8
-end
-
-Util.convKilometersMiles = function(kilometers)
-    return kilometers * 0.62137119223733
-end
-Util.convMilesKilometers = function(miles)
-    return miles * 1.609344
-end
-
-Util.convFeetMeters = function(feet)
-    return feet * 0.3048
-end
-Util.convMetersFeet = function(meters)
-    return meters * 3.28084
-end
-
-Util.convMilimetersInches = function(milimeters)
-    return milimeters * 0.03937007874
-end
-Util.convInchesMilimeters = function(inches)
-    return inches * 25.4
-end
-
 
 return Util
