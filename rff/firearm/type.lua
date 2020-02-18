@@ -10,6 +10,7 @@ local FirearmType = {}
 local ItemType = require(ENV_RFF_PATH .. "item_type")
 local Flags = require(ENV_RFF_PATH .. "firearm/flags")
 local State = require(ENV_RFF_PATH .. "firearm/state")
+local Instance = require(ENV_RFF_PATH .. "firearm/instance")
 
 local Bit = require(ENV_RFF_PATH .. "interface/bit32")
 local Logger = require(ENV_RFF_PATH .. "interface/logger")
@@ -160,78 +161,8 @@ called without needing a player or reloadable object.
 @tparam HandWeapon weaponItem
 
 ]]
-function FirearmType:setup(data_table)
-    data_table.type_id = self.type_id
-    data_table.features = self.features
-    data_table.ammo_group = self.ammo_group
-
-    data_table.max_capacity = self.max_capacity
-    data_table.current_capacity = 0
-
-    if self.magazine_group then
-        -- TODO: fix magazine code
-        -- local mag = Magazine.getGroup(self.magazine_group):random()
-        -- data_table.magazine_type = mag.type_id
-        -- data_table.max_capacity = mag.max_capacity
-    else -- sanity check when resetting to default
-        data_table.magazine_id = nil
-    end
-
-    --data_table.speedLoader = self.speedLoader -- speedloader/stripperclip name
-    
-    -- normally isAutomatic checks data_table.feed_system, but thats not set yet so self.feed_system is used.
-    -- direct copying of self.feed_system to data_table.feed_system is not desirable for dual type systems like
-    -- the spas-12. data_table.feed_system should only contain the current firemode.
-    if self:isAutomatic() then
-        data_table.feed_system = Flags.AUTO + Bit.band(self.feed_system, AUTOFEEDTYPES)
-    --elseif Firearm.isRotary(weaponItem, self) then
-    --elseif Firearm.isBolt(weaponItem, self) then
-    --elseif Firearm.isPump(weaponItem, self) then
-    --elseif Firearm.isLever(weaponItem, self) then
-    --elseif Firearm.isBreak(weaponItem, self) then
-    else
-        data_table.feed_system = self.feed_system
-    end
-
-    if self:isFeedType(Flags.ROTARY + Flags.BREAK) then
-        data_table.cylinder_position = 1 -- position is 1 to maxCapacity (required for % oper to work properly)
-        --data_table.roundChambered = nil
-        --data_table.emptyShellChambered = nil
-    else
-        data_table.chambered_id = nil
-        --data_table.roundChambered = 0 -- 0 or 1, a round is currently chambered
-        --data_table.emptyShellChambered = 0 -- 0 or 1, a empty shell is currently chambered
-    end
-
-    local state = 0
-    -- set the current firemode to first available position.
-
-    --if Firearm.isSelectFire(weaponItem, self) then
-    if self:isSemiAuto() then
-        state = state + Status.SINGLESHOT
-    elseif self:isFullAuto() then
-        state = state + State.FULLAUTO
-    elseif self:is2ShotBurst() then
-        state = state + State.BURST2
-    elseif self:is3ShotBurst() then
-        state = state + State.BURST3
-    else
-        state = state + State.SINGLESHOT
-    end
-    --end
-    data_table.state = state
-
-    data_table.magazine_contents = {} -- current rounds, LIFO list
-    -- data_table.strictAmmoType = nil -- preferred ammo type, this is set by the UI context menu
-    -- last round the stats were set to, used for knowing what to eject, and if we should change weapon stats when chambering next round
-    data_table.set_ammo_id = nil
-    -- what type of rounds are loaded, either ammo name, or 'mixed'. This is only really used when ejecting a magazine, so the mag's data_table
-    -- has this flagged (used when loading new mags to match self.preferredAmmoType). Also used in tooltips
-    data_table.loaded_ammo_id = nil
-    data_table.rounds_fired = 0
-    data_table.rounds_since_cleaned = 0
-    data_table.barrel_length = self.barrel_length
-    return data_table
+function FirearmType:setup(firearm_data)
+    return Instance.initialize(firearm_data, self)
 end
 
 

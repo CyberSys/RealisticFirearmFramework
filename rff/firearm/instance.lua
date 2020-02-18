@@ -1,43 +1,5 @@
 --[[- Functions for manipulating framework data for a specific firearm instance.
 
-expected instance keys:
-
-* type_id
-
-* state
-
-* features
-
-* feed_system
-
-* ammo_group
-
-* magazine_group
-
-* max_capacity
-
-* current_capacity
-
-* magazine_id
-
-* magazine_contents
-
-* chambered_id
-
-* set_ammo_id
-
-* loaded_ammo_id
-
-* cylinder_position
-
-* rounds_fired
-
-* rounds_since_cleaned
-
-* barrel_length
-
-* _rff_version
-
 @module RFF.Firearm.Instance
 @author Fenris_Wolf
 @release 1.00-alpha
@@ -54,16 +16,96 @@ local Bit = require(ENV_RFF_PATH .. "interface/bit32")
 
 local MagI = Magazine.Instance 
 
---[[
 
-Instance.new(self)
-    local o = { }
-    setmetatable(o, self)
-    self.__index = self
-    return o
+
+Instance.new(self, design)
+    local o = setmetatable({ }, { __index=self })
+    return Instance.initialize(o, design)
 end
-]]
 
+
+Instance.initialize = function(firearm_data, design)
+    firearm_data = firearm_data or {}
+
+    firearm_data.type_id = design.type_id
+    firearm_data.features = design.features
+    firearm_data.ammo_group = design.ammo_group
+
+    if design.magazine_group then
+        -- TODO: fix magazine code
+        -- local mag = Magazine.getGroup(self.magazine_group):random()
+        -- firearm_data.magazine_type = mag.type_id
+        -- firearm_data.max_capacity = mag.max_capacity
+    else
+        -- TODO: should call a proper setup function here for internal mags
+        firearm_data.magazine_data = {
+            magazine_contents = { },
+            max_capacity = design.max_capacity,
+            current_capacity = 0,
+            type_id = nil,
+        }
+        -- firearm_data.magazine_contents = { } -- current rounds, LIFO list
+        --firearm_data.magazine_id = nil
+    end
+
+
+    --firearm_data.speedLoader = self.speedLoader -- speedloader/stripperclip name
+    
+    -- normally isAutomatic checks firearm_data.feed_system, but thats not set yet so self.feed_system is used.
+    -- direct copying of self.feed_system to firearm_data.feed_system is not desirable for dual type systems like
+    -- the spas-12. firearm_data.feed_system should only contain the current firemode.
+    if design:isAutomatic() then
+        firearm_data.feed_system = Flags.AUTO + Bit.band(design.feed_system, AUTOFEEDTYPES)
+    --elseif Firearm.isRotary(weaponItem, self) then
+    --elseif Firearm.isBolt(weaponItem, self) then
+    --elseif Firearm.isPump(weaponItem, self) then
+    --elseif Firearm.isLever(weaponItem, self) then
+    --elseif Firearm.isBreak(weaponItem, self) then
+    else
+        firearm_data.feed_system = design.feed_system
+    end
+
+    if design:isFeedType(Flags.ROTARY + Flags.BREAK) then
+        firearm_data.cylinder_position = 1 -- position is 1 to maxCapacity (required for % oper to work properly)
+        --firearm_data.roundChambered = nil
+        --firearm_data.emptyShellChambered = nil
+    else
+        firearm_data.chambered_id = nil
+        --firearm_data.roundChambered = 0 -- 0 or 1, a round is currently chambered
+        --firearm_data.emptyShellChambered = 0 -- 0 or 1, a empty shell is currently chambered
+    end
+
+    local state = 0
+    -- set the current firemode to first available position.
+
+    --if Firearm.isSelectFire(weaponItem, self) then
+    if design:isSemiAuto() then
+        state = state + Status.SINGLESHOT
+    elseif design:isFullAuto() then
+        state = state + State.FULLAUTO
+    elseif design:is2ShotBurst() then
+        state = state + State.BURST2
+    elseif design:is3ShotBurst() then
+        state = state + State.BURST3
+    else
+        state = state + State.SINGLESHOT
+    end
+    --end
+    firearm_data.state = state
+
+    
+    
+    -- firearm_data.strictAmmoType = nil -- preferred ammo type, this is set by the UI context menu
+    -- last round the stats were set to, used for knowing what to eject, and if we should change weapon stats when chambering next round
+    firearm_data.set_ammo_id = nil
+    -- what type of rounds are loaded, either ammo name, or 'mixed'. This is only really used when ejecting a magazine, so the mag's data_table
+    -- has this flagged (used when loading new mags to match self.preferredAmmoType). Also used in tooltips
+    firearm_data.loaded_ammo_id = nil
+    firearm_data.rounds_fired = 0
+    firearm_data.rounds_since_cleaned = 0
+    firearm_data.barrel_length = design.barrel_length
+    return firearm_data
+end
 
 Instance.setSelectFireMode = function(firearm_data, fire_mode)
     firearm_data.state = firearm_data.state - Bit.band(firearm_data.state, FIREMODESTATES) + fire_mode
@@ -177,7 +219,7 @@ end
 Instance.fireAmmoChambered = function(firearm_data)
     local ammo_id = Instance.getAmmoChambered(firearm_data)
     local ammo_design = Ammo.get(ammo_id)
-    Instance.setAmmoChambered(firearm_data, ammo_design and ammo_design.Case or nil)
+    Instance.setAmmoChambered(firearm_data, ammo_design and ammo_design.case or nil)
 end
 
 -- Specified magazine or cylinder position
