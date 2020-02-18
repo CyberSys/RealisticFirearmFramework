@@ -16,7 +16,7 @@ local Bit = require(ENV_RFF_PATH .. "interface/bit32")
 local Logger = require(ENV_RFF_PATH .. "interface/logger")
 
 local FEEDTYPES = Flags.AUTO + Flags.BOLT + Flags.LEVER + Flags.PUMP + Flags.BREAK + Flags.ROTARY
-local AUTOFEEDTYPES = Flags.BLOWBACK + Flags.DELAYEDBLOWBACK + Flags.SHORTGAS + Flags.LONGGAS + Flags.DIRECTGAS + Flags.LONGRECOIL + Flags.SHORTRECOIL
+--local AUTOFEEDTYPES = Flags.BLOWBACK + Flags.DELAYEDBLOWBACK + Flags.SHORTGAS + Flags.LONGGAS + Flags.DIRECTGAS + Flags.LONGRECOIL + Flags.SHORTRECOIL
 
 setmetatable(FirearmType, { __index = ItemType })
 
@@ -35,7 +35,7 @@ FirearmType._PropertiesTable = {
 
     barrel_length = {type='float', min=0, default=10, required=true},
     feed_system = {type='integer', min=0, default=Flags.AUTO+Flags.BLOWBACK, required=true},
-    max_capacity = {type='integer', min=0, default=10},
+    max_capacity = {type='integer', min=0, default=0},
 }
 
 --- FirearmType Methods
@@ -103,7 +103,7 @@ function FirearmType:isAutomatic()
     return self:isFeedType(Flags.AUTO)
 end
 function FirearmType:isBolt()
-    return self:isFeedType(Flags.Bolt)
+    return self:isFeedType(Flags.BOLT)
 end
 function FirearmType:isPump()
     return self:isFeedType(Flags.PUMP)
@@ -114,7 +114,6 @@ end
 function FirearmType:isBreak()
     return self:isFeedType(Flags.BREAK)
 end
-
 
 
 function FirearmType:validate()
@@ -147,20 +146,10 @@ function FirearmType:validate()
     return true
 end
 
-
 function FirearmType:create()
     return self:setup({})
 end
 
---[[- Sets up a gun, applying key/values into the items modData.
-This should be called whenever a firearm is spawned.
-Basically the same as ReloadUtil:setupGun and ISORGMWeapon:setupReloadable but
-called without needing a player or reloadable object.
-
-@usage ORGM.Firearm.setup(Firearm.getDesign(weaponItem), weaponItem)
-@tparam HandWeapon weaponItem
-
-]]
 function FirearmType:setup(firearm_data)
     return Instance.initialize(firearm_data, self)
 end
