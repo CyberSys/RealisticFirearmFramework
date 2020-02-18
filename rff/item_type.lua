@@ -124,7 +124,7 @@ function ItemType:new(item_id, item_data, template)
     -- TODO: this should use some Interface callback function to properly register a item with the application (if needed)
     o._ItemTable[item_id] = o
 
-    local groups = o.Groups or template.Groups
+    local groups = o.groups or template.groups
     for gname, weight in pairs(groups or {}) do
         local group = o._GroupTable[gname]
         if group then
@@ -164,7 +164,7 @@ end
 function ItemType:getGroups()
     local results = {}
     for name, obj in pairs(self._GroupTable) do
-        if obj:contains(self.type) then
+        if obj:contains(self.type_id) then
             results[name] = obj
         end
     end
@@ -181,7 +181,7 @@ end
 ]]
 function ItemType:isGroupMember(groupType)
     groupType = type(groupType) == 'table' and groupType or self._GroupTable[groupType]
-    if groupType then return groupType:contains(self.type) end
+    if groupType then return groupType:contains(self.type_id) end
 end
 
 

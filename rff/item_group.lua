@@ -39,7 +39,7 @@ function ItemGroup:new(id, data)
     o.type_id = id
     
     -- add as a subgroup of specified groups
-    for gname, weight in pairs(o.Groups or { }) do
+    for gname, weight in pairs(o.groups or { }) do
         group = o._GroupTable[gname]
         if group then
             group:add(id, weight)
