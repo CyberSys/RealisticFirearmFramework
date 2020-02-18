@@ -301,7 +301,7 @@ end
 ]]
 Actions.chamberNextRound = function(firearm_data, game_item, game_player, is_firing)
     if Instance.isMagazineEmpty(firearm_data) then
-        Instance.updateLoadedAmmo() 
+        Instance.updateLoadedAmmo(firearm_data) 
         return false
     end
 
