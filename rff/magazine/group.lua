@@ -20,6 +20,7 @@ function MagazineGroup:spawn(typeModifiers, filter, container, loaded)
     local magazine = self:random(typeModifiers, filter)
     return magazine:spawn(container, loaded)
 end
+]]
 
 --[[- Finds the best matching magazine in a container.
 
