@@ -18,7 +18,7 @@ local MagI = Magazine.Instance
 
 
 
-Instance.new(self, design)
+Instance.new = function(self, design)
     local o = setmetatable({ }, { __index=self })
     return Instance.initialize(o, design)
 end
@@ -40,9 +40,11 @@ Instance.initialize = function(firearm_data, design)
         -- TODO: should call a proper setup function here for internal mags
         firearm_data.magazine_data = {
             magazine_contents = { },
+            ammo_group = design.ammo_group,
             max_capacity = design.max_capacity,
             current_capacity = 0,
             type_id = nil,
+            
         }
         -- firearm_data.magazine_contents = { } -- current rounds, LIFO list
         --firearm_data.magazine_id = nil
