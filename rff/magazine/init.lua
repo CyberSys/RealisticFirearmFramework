@@ -23,7 +23,7 @@ Magazine.MagazineGroup = MagazineGroup
 Magazine.MagazineType = MagazineType
 Magazine.State = State
 Magazine.Flags = Flags
-Magazine.Instance = require(ENV_RFF_PATH .. "firearm/instance")
+Magazine.Instance = require(ENV_RFF_PATH .. "magazine/instance")
 
 MagazineGroup._GroupTable = MagazineGroupTable
 MagazineGroup._ItemTable = MagazineTable
