@@ -13,16 +13,14 @@ Tests.reset()
 
 local firearm_data
 
-local function assertState(data_state)
-    for key, value in pairs(data_state) do
-        if type(value) == 'table' then
-            for key2, value2 in pairs(value) do
-                assert(firearm_data[key][key2] == value2, "key '".. key2 .."' in table '".. key .. "' doesnt match expected value of " .. value2 .. ", but is ".. firearm_data[key][key2])
-            end 
+function assertState(data, match)
+    for key, value in pairs(match) do
+        if type(value) == 'table' and data[key] then
+            assertState(data[key], value)
         else
-            assert(firearm_data[key] == value, "key '".. key .."' doesnt match expected value of " .. value .. ", but is ".. firearm_data[key])
+            assert(data[key] == value, "key '".. key .."' doesnt match expected value of " .. tostring(value) .. ", but is ".. tostring(data[key]))
         end
-    end 
+    end
 end
 
 Tests.run("Ammo Registration", function()
@@ -34,13 +32,13 @@ Tests.run("Ammo Registration", function()
     assert(AmmoGroup:new("AmmoGroup_357Magnum"), 
         "Failed to register ammo group", true)
     assert(AmmoType:new("Ammo_357Magnum_HP", {
-        Case = "Case_357Magnum",
-        Groups = { AmmoGroup_357Magnum = 1, },
+        case = "Case_357Magnum",
+        groups = { AmmoGroup_357Magnum = 1, },
+        case_mass = 1, bullet_mass = 1, powder_mass = 1, powder_type = "",
+        category = Ammo.Flags.PISTOL,
         features = Flags.JACKETED + Flags.HOLLOWPOINT + Flags.FLATPOINT,
     }), "Failed to register ammo", true)
 end)
-
-
 
 Tests.run("Firearm Registration", function()
 
@@ -59,6 +57,7 @@ Tests.run("Firearm Registration", function()
 end)
 
 
+
 Tests.run("Spawning", function()
 
     local design = Firearm.get("Colt_Python")
@@ -70,10 +69,6 @@ Tests.run("Spawning", function()
     -- TODO: proper loading
     Tests.log("Initializing hack reload..")
     Instance.refillAmmo(firearm_data, "Ammo_357Magnum_HP")
-    --for i=1, firearm_data.max_capacity do
-    --    firearm_data.magazine_contents[i] = "Ammo_357Magnum_HP"
-    --end
-    --firearm_data.current_capacity = firearm_data.max_capacity
     --assert(Actions.willFire(firearm_data, nil, nil), "willFire returned false", true)
 
     Tests.log("Firearm loaded and ready to fire.")
@@ -91,13 +86,13 @@ Tests.run("Operation", function()
     assert(Instance.isSafe(firearm_data) == false, "Failed to disengage safety")
 
     Actions.cockHammer(firearm_data, nil, nil, false)
-    assertState({cylinder_position = 2, state = State.SINGLESHOT + State.COCKED})
+    assertState(firearm_data, {cylinder_position = 2, state = State.SINGLESHOT + State.COCKED})
     --assert(Actions.willFire(firearm_data, nil, nil), "willFire returned false")
 
     
     Tests.log("Hammer cocked and cylinder rotated ok. Releasing hammer...")
     Actions.releaseHammer(firearm_data, nil, nil, false)
-    assertState({cylinder_position = 2, state = State.SINGLESHOT})
+    assertState(firearm_data, {cylinder_position = 2, state = State.SINGLESHOT})
 
     --if assert(Actions.willFire(firearm_data, nil, nil), "willFire returned false") then return end
     
@@ -119,7 +114,7 @@ Tests.run("Firing", function()
 
     Tests.log("Recocking and testing Single-Action shot...")
     Actions.cockHammer(firearm_data, nil, nil, false)
-    assertState({current_capacity = 6, cylinder_position = 3, state = State.SINGLESHOT + State.COCKED})
+    assertState(firearm_data, {magazine_data={current_capacity = 6}, cylinder_position = 3, state = State.SINGLESHOT + State.COCKED})
 
      -- Actions.pullTrigger(firearm_data, nil, nil, true)
     assertPullTrigger(true)
@@ -127,8 +122,11 @@ Tests.run("Firing", function()
     Tests.log("BANG!")
      -- Actions.shotFired(firearm_data, nil, nil, true)
     assertShotFired(true)
-    assertState({current_capacity = 5, cylinder_position = 3, state = State.SINGLESHOT, 
-        magazine_contents = {[3] = "Case_357Magnum" }
+    assertState(firearm_data, {cylinder_position = 3, state = State.SINGLESHOT, 
+        magazine_data = { 
+            current_capacity = 5, 
+            magazine_contents = {[3] = "Case_357Magnum" }
+        }
     })
 
     Tests.log("Fire successful. Empty casing detected in cylinder.")
@@ -136,44 +134,54 @@ Tests.run("Firing", function()
     Tests.log("Testing Double-Action shot")
 
     assertPullTrigger(true)
-    assertState({current_capacity = 5, cylinder_position = 4, state = State.SINGLESHOT})
+    assertState(firearm_data, {cylinder_position = 4, state = State.SINGLESHOT,
+        magazine_data = { current_capacity = 5,}
+    })
     Tests.log("BANG!")
     assertShotFired(true)
-    assertState({current_capacity = 4, cylinder_position = 4, state = State.SINGLESHOT,
-        magazine_contents = { [4] = "Case_357Magnum" }
+    assertState(firearm_data, {cylinder_position = 4, state = State.SINGLESHOT,
+        magazine_data = { 
+            current_capacity = 4, 
+            magazine_contents = {[3] = "Case_357Magnum", [4] = "Case_357Magnum" }
+        }
     })
     
     Tests.log("Emptying cylinder...")
 
     assertPullTrigger(true)
-    assertState({current_capacity = 4, cylinder_position = 5, state = State.SINGLESHOT})
+    assertState(firearm_data, {cylinder_position = 5, state = State.SINGLESHOT})
     Tests.log("BANG!")
     assertShotFired(true)
-    assertState({current_capacity = 3, cylinder_position = 5, state = State.SINGLESHOT})
+    assertState(firearm_data, {cylinder_position = 5, state = State.SINGLESHOT, magazine_data = { current_capacity = 3 }})
 
     assertPullTrigger(true)
-    assertState({current_capacity = 3, cylinder_position = 6, state = State.SINGLESHOT})
+    assertState(firearm_data, {cylinder_position = 6, state = State.SINGLESHOT, magazine_data = { current_capacity = 3 }})
     Tests.log("BANG!")
     assertShotFired(true)
-    assertState({current_capacity = 2, cylinder_position = 6, state = State.SINGLESHOT})
+    assertState(firearm_data, {cylinder_position = 6, state = State.SINGLESHOT, magazine_data = { current_capacity = 2 }})
 
     assertPullTrigger(true)
-    assertState({current_capacity = 2, cylinder_position = 1, state = State.SINGLESHOT})
+    assertState(firearm_data, {cylinder_position = 1, state = State.SINGLESHOT, magazine_data = { current_capacity = 2 }})
     Tests.log("BANG!")
     assertShotFired(true)
-    assertState({current_capacity = 1, cylinder_position = 1, state = State.SINGLESHOT})
+    assertState(firearm_data, {cylinder_position = 1, state = State.SINGLESHOT, magazine_data = { current_capacity = 1 }})
 
     assertPullTrigger(true)
-    assertState({current_capacity = 1, cylinder_position = 2, state = State.SINGLESHOT})
+    assertState(firearm_data, {cylinder_position = 2, state = State.SINGLESHOT, magazine_data = { current_capacity = 1 }})
     Tests.log("BANG!")
     assertShotFired(true)
-    assertState({current_capacity = 0, cylinder_position = 2, state = State.SINGLESHOT,
-        magazine_contents = {"Case_357Magnum","Case_357Magnum","Case_357Magnum","Case_357Magnum","Case_357Magnum","Case_357Magnum" }
+    assertState(firearm_data, {cylinder_position = 2, state = State.SINGLESHOT,
+        magazine_data = { 
+            current_capacity = 0, 
+            magazine_contents = {"Case_357Magnum","Case_357Magnum","Case_357Magnum","Case_357Magnum","Case_357Magnum","Case_357Magnum" }
+        }
     })
 
     Tests.log("Cylinder Empty")
 end)
+--[[
 
+]]
 
 -- ######################################################################
 -- print results
