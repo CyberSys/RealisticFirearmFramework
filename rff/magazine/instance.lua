@@ -3,9 +3,45 @@ local Ammo = require(ENV_RFF_PATH .. "ammo/init")
 local State = require(ENV_RFF_PATH .. "magazine/state")
 local Flags = require(ENV_RFF_PATH .. "magazine/flags")
 local Bit = require(ENV_RFF_PATH .. "interface/bit32")
+local logger = require(ENV_RFF_PATH .. "interface/logger")
 
 local Instance = {}
 
+Instance.initialize = function(magazine_data, design, attrib)
+    magazine_data = magazine_data or { }
+    magazine_data.magazine_contents = { }
+    magazine_data.state = 0
+    magazine_data.current_capacity = 0
+    magazine_data.loaded_ammo_id = nil
+
+    magazine_data.type_id = design.type_id or nil 
+    magazine_data.ammo_group = design.ammo_group
+    magazine_data.features = design.features
+    magazine_data.max_capacity = design.max_capacity
+    return magazine_data
+end
+
+Instance.dump = function(magazine_data)
+    local info = logger.info
+    local text = {
+        '----------------',
+        '  Magazine Data:',
+        '  type_id: ' .. tostring(magazine_data.type_id),
+        '  ammo_group: ' .. tostring(magazine_data.ammo_group),
+        '  loaded_ammo_id: ' .. tostring(magazine_data.loaded_ammo_id),
+        '  features: ' .. tostring(magazine_data.features),
+        '  state: ' .. tostring(magazine_data.state),
+        '  max_capacity: ' .. tostring(magazine_data.max_capacity),
+        '  current_capacity: ' .. tostring(magazine_data.current_capacity),
+        '  state: ' .. tostring(magazine_data.state),
+        '  contents: '
+    }
+    for _,t in ipairs(text) do logger.info(t) end
+    local contents = magazine_data.magazine_contents
+    for i=1, magazine_data.max_capacity do
+        if contents[i] then logger.info('    '..tostring(i)..": "..tostring(contents[i])) end
+    end
+end
 
 Instance.isLoaded = function(magazine_data)
     return magazine_data.current_capacity > 0
