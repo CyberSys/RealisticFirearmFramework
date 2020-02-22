@@ -1,6 +1,7 @@
 if not ENV_RFF_PATH then 
     ENV_RFF_PATH = "../rff/"
 end
+local TestData = require("tests/test_data")
 local Const = require(ENV_RFF_PATH .. "constants")
 local Tests = require(ENV_RFF_PATH .. "tests")
 local Actions = require(ENV_RFF_PATH .. "firearm/actions")
@@ -9,11 +10,22 @@ local Ammo = require(ENV_RFF_PATH .. "ammo/init")
 local State = Firearm.State
 local assert = Tests.assert
 local Instance = require(ENV_RFF_PATH .. "firearm/instance")
-Tests.reset()
 
-local firearm_data
 
-function assertState(data, match)
+-- type checkers used throughout the tests
+local firearm_type = "Revolver1"
+local ammo_group = "AmmoGroup_357Magnum"
+local ammo_type = "Ammo_357Magnum_Type1"
+local case_type = "Case_357Magnum"
+
+local firearm_data -- instance holder.
+
+-- /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+-- recursive table checking. 
+-- ensure all key/values in table B (match) are identical to table A (data)
+-- additional keys in table A are not checked, and no error raised.
+local function assertState(data, match)
     for key, value in pairs(match) do
         if type(value) == 'table' and data[key] then
             assertState(data[key], value)
@@ -21,7 +33,28 @@ function assertState(data, match)
             assert(data[key] == value, "key '".. key .."' doesnt match expected value of " .. tostring(value) .. ", but is ".. tostring(data[key]))
         end
     end
+
 end
+
+-- quick function to save redundant code on trigger pulls
+local function assertPullTrigger(expected, halt)
+    local result = Actions.pullTrigger(firearm_data, nil, nil, true)
+    return assert(result == expected, "pullTrigger returned ".. tostring(result), halt) 
+end
+
+-- shotFired should pretty much always return true. this assert is probably pointless.
+local function assertShotFired(expected, halt)
+    local result = Actions.shotFired(firearm_data, nil, nil, true)
+    return assert(result == expected, "shotFired returned ".. tostring(result), halt) 
+end
+
+
+-- /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Tests.reset()
+
+
+-- /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Tests.run("Ammo Registration", function()
 
@@ -29,103 +62,85 @@ Tests.run("Ammo Registration", function()
     local AmmoType = Ammo.AmmoType
     local Flags = Ammo.Flags
 
-    assert(AmmoGroup:new("AmmoGroup_357Magnum"), 
-        "Failed to register ammo group", true)
-    assert(AmmoType:new("Ammo_357Magnum_HP", {
-        case = "Case_357Magnum",
-        groups = { AmmoGroup_357Magnum = 1, },
-        case_mass = 1, bullet_mass = 1, powder_mass = 1, powder_type = "",
-        category = Ammo.Flags.PISTOL,
-        features = Flags.JACKETED + Flags.HOLLOWPOINT + Flags.FLATPOINT,
-    }), "Failed to register ammo", true)
+    -- create some ammo
+    assert(AmmoGroup:new(ammo_group), "Failed to register ammo group " .. ammo_group, true)
+    assert(AmmoType:new(ammo_type, TestData.Ammo[ammo_type]), "Failed to register ammo ".. ammo_type, true)
+
 end)
+
+
+-- /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Tests.run("Firearm Registration", function()
 
     local FirearmGroup = Firearm.FirearmGroup
     local FirearmType = Firearm.FirearmType
+    assert(Firearm.FirearmType:new(firearm_type, TestData.Firearms[firearm_type]), "Failed to register " .. firearm_type, true)
 
-    assert(Firearm.FirearmType:new("Colt_Python", {
-        weight = 1,
-        barrel_length = 6,
-        max_capacity = 6,
-        category = Const.REVOLVER,
-        feed_system = Firearm.Flags.ROTARY,
-        features = Firearm.Flags.SINGLEACTION + Firearm.Flags.DOUBLEACTION + Firearm.Flags.SAFETY,
-        ammo_group = "AmmoGroup_357Magnum",
-    }), "Failed to register firearm", true)
 end)
 
 
+-- /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Tests.run("Spawning", function()
+Tests.run("Creating Instance", function()
 
-    local design = Firearm.get("Colt_Python")
+    local design = Firearm.get(firearm_type)
     assert(design, "Failed to retrieve design.", true)
     firearm_data = design:create() 
     assert(firearm_data, "Failed create instance.", true)
     -- TODO: validate firearm_data variables
     
-    -- TODO: proper loading
-    Tests.log("Initializing hack reload..")
-    Instance.refillAmmo(firearm_data, "Ammo_357Magnum_HP")
-    --assert(Actions.willFire(firearm_data, nil, nil), "willFire returned false", true)
+    Tests.log("Initializing instant reload..")
+    Instance.refillAmmo(firearm_data, ammo_type)
 
     Tests.log("Firearm loaded and ready to fire.")
 end)
 
 
+-- /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Tests.run("Operation", function()
 
     Tests.log("Engaging safety...")
     Instance.setSafe(firearm_data, true)
-    --assert(not Actions.willFire(firearm_data, nil, nil), "willFire returned true, safety check failed.")
+
+    Tests.log("Pulling Trigger...")
+    assertPullTrigger(false, true)
 
     Tests.log("Safety check passed. Disenaging and cocking...")
     Instance.setSafe(firearm_data, false)
-    assert(Instance.isSafe(firearm_data) == false, "Failed to disengage safety")
+    assert(Instance.isSafe(firearm_data) == false, "Failed to disengage safety", true)
 
     Actions.cockHammer(firearm_data, nil, nil, false)
     assertState(firearm_data, {cylinder_position = 2, state = State.SINGLESHOT + State.COCKED})
-    --assert(Actions.willFire(firearm_data, nil, nil), "willFire returned false")
-
     
     Tests.log("Hammer cocked and cylinder rotated ok. Releasing hammer...")
     Actions.releaseHammer(firearm_data, nil, nil, false)
     assertState(firearm_data, {cylinder_position = 2, state = State.SINGLESHOT})
 
-    --if assert(Actions.willFire(firearm_data, nil, nil), "willFire returned false") then return end
-    
     Tests.log("Hammer released ok.") 
 end)
 
 
 Tests.run("Firing", function()
-    local function assertPullTrigger(expected)
-        local result = Actions.pullTrigger(firearm_data, nil, nil, true)
-        assert(result == expected, "pullTrigger returned ".. tostring(result)) 
-    end
-
-    local function assertShotFired(expected)
-        local result = Actions.shotFired(firearm_data, nil, nil, true)
-        assert(result == expected, "shotFired returned ".. tostring(result)) 
-    end
-
 
     Tests.log("Recocking and testing Single-Action shot...")
     Actions.cockHammer(firearm_data, nil, nil, false)
-    assertState(firearm_data, {magazine_data={current_capacity = 6}, cylinder_position = 3, state = State.SINGLESHOT + State.COCKED})
+    assertState(firearm_data, { cylinder_position = 3, state = State.SINGLESHOT + State.COCKED,
+        magazine_data = { 
+            current_capacity = 6,
+            max_capacity = 6,
+            magazine_contents = {ammo_type, ammo_type, ammo_type, ammo_type, ammo_type, ammo_type }
+        }, 
+    })
 
-     -- Actions.pullTrigger(firearm_data, nil, nil, true)
-    assertPullTrigger(true)
-    
+    assertPullTrigger(true, true)
     Tests.log("BANG!")
-     -- Actions.shotFired(firearm_data, nil, nil, true)
-    assertShotFired(true)
+    assertShotFired(true, true)
     assertState(firearm_data, {cylinder_position = 3, state = State.SINGLESHOT, 
         magazine_data = { 
             current_capacity = 5, 
-            magazine_contents = {[3] = "Case_357Magnum" }
+            magazine_contents = {[3] = case_type }
         }
     })
 
@@ -133,52 +148,73 @@ Tests.run("Firing", function()
     
     Tests.log("Testing Double-Action shot")
 
-    assertPullTrigger(true)
+    assertPullTrigger(true, true)
     assertState(firearm_data, {cylinder_position = 4, state = State.SINGLESHOT,
         magazine_data = { current_capacity = 5,}
     })
     Tests.log("BANG!")
-    assertShotFired(true)
+    assertShotFired(true, true)
     assertState(firearm_data, {cylinder_position = 4, state = State.SINGLESHOT,
         magazine_data = { 
             current_capacity = 4, 
-            magazine_contents = {[3] = "Case_357Magnum", [4] = "Case_357Magnum" }
+            magazine_contents = {[3] = case_type, [4] = case_type }
         }
     })
     
     Tests.log("Emptying cylinder...")
 
-    assertPullTrigger(true)
+    assertPullTrigger(true, true)
     assertState(firearm_data, {cylinder_position = 5, state = State.SINGLESHOT})
     Tests.log("BANG!")
-    assertShotFired(true)
+    assertShotFired(true, true)
     assertState(firearm_data, {cylinder_position = 5, state = State.SINGLESHOT, magazine_data = { current_capacity = 3 }})
 
-    assertPullTrigger(true)
+    assertPullTrigger(true, true)
     assertState(firearm_data, {cylinder_position = 6, state = State.SINGLESHOT, magazine_data = { current_capacity = 3 }})
     Tests.log("BANG!")
-    assertShotFired(true)
+    assertShotFired(true, true)
     assertState(firearm_data, {cylinder_position = 6, state = State.SINGLESHOT, magazine_data = { current_capacity = 2 }})
 
-    assertPullTrigger(true)
+    assertPullTrigger(true, true)
     assertState(firearm_data, {cylinder_position = 1, state = State.SINGLESHOT, magazine_data = { current_capacity = 2 }})
     Tests.log("BANG!")
-    assertShotFired(true)
+    assertShotFired(true, true)
     assertState(firearm_data, {cylinder_position = 1, state = State.SINGLESHOT, magazine_data = { current_capacity = 1 }})
 
-    assertPullTrigger(true)
+    assertPullTrigger(true, true)
     assertState(firearm_data, {cylinder_position = 2, state = State.SINGLESHOT, magazine_data = { current_capacity = 1 }})
     Tests.log("BANG!")
-    assertShotFired(true)
+    assertShotFired(true, true)
     assertState(firearm_data, {cylinder_position = 2, state = State.SINGLESHOT,
         magazine_data = { 
             current_capacity = 0, 
-            magazine_contents = {"Case_357Magnum","Case_357Magnum","Case_357Magnum","Case_357Magnum","Case_357Magnum","Case_357Magnum" }
+            magazine_contents = {case_type,case_type,case_type,case_type,case_type,case_type }
         }
     })
 
     Tests.log("Cylinder Empty")
 end)
+
+
+Tests.run("Dry Firing", function()
+    assertPullTrigger(false, true)
+    Tests.log("Click!")
+    assertState(firearm_data, {cylinder_position = 3, state = State.SINGLESHOT})
+
+    assertPullTrigger(false, true)
+    Tests.log("Click!")
+    assertPullTrigger(false, true)
+    Tests.log("Click!")
+    assertPullTrigger(false, true)
+    Tests.log("Click!")
+    assertPullTrigger(false, true)
+    Tests.log("Click!")
+    assertPullTrigger(false, true)
+    Tests.log("Click!")
+    assertState(firearm_data, {cylinder_position = 2, state = State.SINGLESHOT})
+
+end)
+
 --[[
 
 ]]
