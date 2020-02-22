@@ -1,5 +1,7 @@
 --[[- Functions for manipulating framework data for a specific firearm instance.
 
+
+
 @module RFF.Firearm.Instance
 @author Fenris_Wolf
 @release 1.00-alpha
@@ -17,14 +19,24 @@ local Bit = require(ENV_RFF_PATH .. "interface/bit32")
 local MagI = Magazine.Instance 
 
 
+--[[- Creates a new Firearm instance with metamethods.
 
-Instance.new = function(self, design)
+@tparam table self
+@tparam table design
+@tparam[opt] table attrib
+ 
+]]
+Instance.new = function(self, design, attrib)
     local o = setmetatable({ }, { __index=self })
-    return Instance.initialize(o, design)
+    attrib = attrib or {}
+    attrib._meta = true
+    return Instance.initialize(o, design, attrib)
 end
 
+--[[-
 
-Instance.initialize = function(firearm_data, design)
+]]
+Instance.initialize = function(firearm_data, design, attrib)
     firearm_data = firearm_data or {}
 
     firearm_data.type_id = design.type_id
@@ -32,22 +44,14 @@ Instance.initialize = function(firearm_data, design)
     firearm_data.ammo_group = design.ammo_group
 
     if design.magazine_group then
-        -- TODO: fix magazine code
-        -- local mag = Magazine.getGroup(self.magazine_group):random()
-        -- firearm_data.magazine_type = mag.type_id
-        -- firearm_data.max_capacity = mag.max_capacity
+        local mag = Magazine.getGroup(self.magazine_group):random()
+        firearm_data.magazine_type = MagI.initialize(nil, mag, attrib)
     else
-        -- TODO: should call a proper setup function here for internal mags
-        firearm_data.magazine_data = {
-            magazine_contents = { },
+        firearm_data.magazine_data = MagI.initialize(nil,{
             ammo_group = design.ammo_group,
             max_capacity = design.max_capacity,
-            current_capacity = 0,
             type_id = nil,
-            
-        }
-        -- firearm_data.magazine_contents = { } -- current rounds, LIFO list
-        --firearm_data.magazine_id = nil
+        })
     end
 
 
