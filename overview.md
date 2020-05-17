@@ -35,11 +35,14 @@ local gun = Firearm.get("SomeGun")
 * **RFF** (rff/init.lua)  
 main module loading, sets up the submodule table.
 
+* **RFF.Config** (rff/config.lua)  
+functions for getting and setting configuration values. 
+
 * **RFF.Const** (rff/constants.lua)  
 various constant values.
 
-* **RFF.Config** (rff/config.lua)  
-functions for getting and setting configuration values. 
+* **RFF.Convert** (rff/convert.lua)  
+functions for converting units of measurement.
 
 * **RFF.EventSystem** (rff/events.lua)  
 functions for registering and triggering event callbacks. 
@@ -56,27 +59,56 @@ functions for ammo and firearm malfunctions.
 * **not imported** (rff/tests.lua)  
 functions for automated tests.
 
+
+#### Firearm Modules
+
 * **RFF.Firearm** (rff/firearm/init.lua)  
 functions for dealing with FirearmGroups and FirearmTypes.
-
-* **RFF.Firearm.Flags** (rff/firearm/flags.lua)  
-various constant flag values.
-
-* **RFF.Firearm.State** (rff/firearm/state.lua)  
-various constant state values.
-
-* **RFF.Firearm.FirearmGroup** (rff/firearm/group.lua)  
-subclass of ItemGroup used to organize firearm data.
-
-* **RFF.Firearm.FirearmType** (rff/firearm/type.lua) 
-subclass of ItemType used for various firearm design templates.
 
 * **RFF.Firearm.Actions** (rff/firearm/actions.lua)  
 functions for performing actions on firearm instances.
 
+* **RFF.Firearm.Flags** (rff/firearm/flags.lua)  
+various constant flag values.
+
+* **RFF.Firearm.FirearmGroup** (rff/firearm/group.lua)  
+subclass of ItemGroup used to organize firearm data.
+
 * **RFF.Firearm.Instance** (rff/firearm/instance.lua)  
 functions for dealing with specific instances of firearm data.
 
+* **RFF.Firearm.State** (rff/firearm/state.lua)  
+various constant state values.
+
+* **RFF.Firearm.FirearmType** (rff/firearm/type.lua) 
+subclass of ItemType used for various firearm design templates.
+
+
+#### Magazine Modules
+
+* **RFF.Magazine** (rff/magazine/init.lua)  
+functions for dealing with FirearmGroups and FirearmTypes.
+
+* **RFF.Magazine.Actions** (rff/magazine/actions.lua)  
+functions for performing actions on magazine instances.
+
+* **RFF.Magazine.Flags** (rff/magazine/flags.lua)  
+various constant flag values.
+
+* **RFF.Magazine.MagazineGroup** (rff/magazine/group.lua)  
+subclass of ItemGroup used to organize magazine data.
+
+* **RFF.Magazine.Instance** (rff/magazine/instance.lua)  
+functions for dealing with specific instances of magazine data.
+
+* **RFF.Magazine.State** (rff/magazine/state.lua)  
+various constant state values.
+
+* **RFF.Magazine.MagazineType** (rff/magazine/type.lua) 
+subclass of ItemType used for various magazine design templates.
+
+
+#### Interface modules
 
 * **RFF.Interface.Bit** (rff/interface/bit32.lua)  
 Bitwise functions, to be overwritten to with specific lua version code
@@ -92,5 +124,7 @@ Functions for dealing with the application's game objects
 
 * **RFF.Interface.Container** (rff/interface/container.lua)  
 Functions for dealing with the application's game objects 
+
+
 
 

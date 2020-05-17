@@ -88,7 +88,6 @@ Tests.run("Creating Instance", function()
     assert(design, "Failed to retrieve design.", true)
     firearm_data = design:create() 
     assert(firearm_data, "Failed create instance.", true)
-    -- TODO: validate firearm_data variables
     
     Tests.log("Initializing instant reload..")
     Instance.refillAmmo(firearm_data, ammo_type)
@@ -114,11 +113,18 @@ Tests.run("Operation", function()
     Actions.cockHammer(firearm_data, nil, nil, false)
     assertState(firearm_data, {cylinder_position = 2, state = State.SINGLESHOT + State.COCKED})
     
-    Tests.log("Hammer cocked and cylinder rotated ok. Releasing hammer...")
+    Tests.log("Hammer cocked, cylinder rotated ok. Releasing hammer...")
     Actions.releaseHammer(firearm_data, nil, nil, false)
     assertState(firearm_data, {cylinder_position = 2, state = State.SINGLESHOT})
 
-    Tests.log("Hammer released ok.") 
+    Tests.log("Hammer checks passed. Opening cylinder...")
+    assert(Actions.openCylinder(firearm_data, nil, nil, false) == true, "Failed to open cylinder", true)
+    assertState(firearm_data, {cylinder_position = 2, state = State.SINGLESHOT + State.OPEN})
+    
+    Tests.log("Closing...")
+    assert(Actions.closeCylinder(firearm_data, nil, nil, false) == true, "Failed to close cylinder", true)
+    assertState(firearm_data, {cylinder_position = 2, state = State.SINGLESHOT})
+    
 end)
 
 
@@ -161,7 +167,7 @@ Tests.run("Firing", function()
         }
     })
     
-    Tests.log("Emptying cylinder...")
+    Tests.log("Firing remaining rounds...")
 
     assertPullTrigger(true, true)
     assertState(firearm_data, {cylinder_position = 5, state = State.SINGLESHOT})
@@ -200,7 +206,6 @@ Tests.run("Dry Firing", function()
     assertPullTrigger(false, true)
     Tests.log("Click!")
     assertState(firearm_data, {cylinder_position = 3, state = State.SINGLESHOT})
-
     assertPullTrigger(false, true)
     Tests.log("Click!")
     assertPullTrigger(false, true)
@@ -212,8 +217,9 @@ Tests.run("Dry Firing", function()
     assertPullTrigger(false, true)
     Tests.log("Click!")
     assertState(firearm_data, {cylinder_position = 2, state = State.SINGLESHOT})
-
 end)
+
+
 
 --[[
 
@@ -222,4 +228,4 @@ end)
 -- ######################################################################
 -- print results
 Tests.counts()
-
+Instance.dump(firearm_data)

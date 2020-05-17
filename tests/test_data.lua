@@ -44,7 +44,7 @@ TestData.Magazines = {
         max_capacity = 20,
         ammo_group = "AmmoGroup_556x45mm",
         features = Magazine.Flags.BOX,
-    }
+    },
     STANAGx30 = {
         weight = 0.2,
         groups = { MagazineGroup_STANAG = 1 },

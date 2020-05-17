@@ -1,3 +1,31 @@
+--[[- Functions for manipulating framework data for a specific magazine instance.
+
+Instance data is stored in a table. Key/value pairs in these instance table should not be directly accessed, 
+instead using the functions (or methods, depending) in this module. 
+
+This module is written in 'functional code' style, allowing for both OO style (metatables), or functional style 
+depending on your requirements. It never uses `self:` internally for flexibility in sterilization of instances.
+
+```lua
+local Magazine = RFF.Magazine
+local Instance = Magazine.Instance
+local design = Magazine.get("STANAGx30")
+
+-- OO
+local mag1 = Instance:new(design)
+local count = mag1:getAmmoCount()
+
+-- functional
+local mag2 = Instance.initialize({ }, design)
+Instance.getAmmoCount(mag2)
+```
+
+@module RFF.Magazine.Instance
+@author Fenris_Wolf
+@release 1.00-alpha
+@copyright 2020
+
+]]
 
 local Ammo = require(ENV_RFF_PATH .. "ammo/init")
 local State = require(ENV_RFF_PATH .. "magazine/state")
@@ -30,7 +58,6 @@ Instance.dump = function(magazine_data)
         '  ammo_group: ' .. tostring(magazine_data.ammo_group),
         '  loaded_ammo_id: ' .. tostring(magazine_data.loaded_ammo_id),
         '  features: ' .. tostring(magazine_data.features),
-        '  state: ' .. tostring(magazine_data.state),
         '  max_capacity: ' .. tostring(magazine_data.max_capacity),
         '  current_capacity: ' .. tostring(magazine_data.current_capacity),
         '  state: ' .. tostring(magazine_data.state),

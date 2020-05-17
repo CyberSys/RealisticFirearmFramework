@@ -98,7 +98,7 @@ Convert.temp = function(value, input_type, output_type)
     elseif input_type == Convert.FAHRENHEIT and output_type == Convert.CELSIUS then
         return (value - 32) / 1.8 
     end
-    return nil -- what? impossible state? lol
+    return nil -- https://xkcd.com/2200/
 end
 
 Convert.distance = function(value, input_type, output_type)

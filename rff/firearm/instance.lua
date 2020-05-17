@@ -1,6 +1,24 @@
 --[[- Functions for manipulating framework data for a specific firearm instance.
 
+Instance data is stored in a table. Key/value pairs in these instance table should not be directly accessed, 
+instead using the functions (or methods, depending) in this module. 
 
+This module is written in 'functional code' style, allowing for both OO style (metatables), or functional style 
+depending on your requirements. It never uses `self:` internally for flexibility in sterilization of instances.
+
+```lua
+local Firearm = RFF.Firearm
+local Instance = Firearm.Instance
+local design = Firearm.get("M16")
+
+-- OO
+local gun1 = Instance:new(design)
+gun1:setSelectFireMode(Firearm.Flags.FULLAUTO)
+
+-- functional
+local gun2 = Instance.initialize({ }, design)
+Instance.setSelectFireMode(gun2, Firearm.Flags.FULLAUTO)
+```
 
 @module RFF.Firearm.Instance
 @author Fenris_Wolf
@@ -15,6 +33,7 @@ local Flags = require(ENV_RFF_PATH .. "firearm/flags")
 local Ammo = require(ENV_RFF_PATH .. "ammo/init")
 local Magazine = require(ENV_RFF_PATH .. "magazine/init")
 local Bit = require(ENV_RFF_PATH .. "interface/bit32")
+local logger = require(ENV_RFF_PATH .. "interface/logger")
 
 local MagI = Magazine.Instance 
 
@@ -51,6 +70,7 @@ Instance.initialize = function(firearm_data, design, attrib)
             ammo_group = design.ammo_group,
             max_capacity = design.max_capacity,
             type_id = nil,
+            features = Magazine.Flags.INTERNAL
         })
     end
 
@@ -111,6 +131,23 @@ Instance.initialize = function(firearm_data, design, attrib)
     firearm_data.rounds_since_cleaned = 0
     firearm_data.barrel_length = design.barrel_length
     return firearm_data
+end
+
+
+Instance.dump = function(firearm_data)
+    local info = logger.info
+    
+    local text = {
+        '----------------',
+        'Firearm Data:',
+        '  type_id: ' .. tostring(firearm_data.type_id),
+        '  ammo_group: ' .. tostring(firearm_data.ammo_group),
+        '  state: ' .. tostring(firearm_data.state),
+    }
+    for _,t in ipairs(text) do logger.info(t) end
+    if firearm_data.magazine_data then
+        MagI.dump(firearm_data.magazine_data)
+    end 
 end
 
 Instance.setSelectFireMode = function(firearm_data, fire_mode)
@@ -187,15 +224,12 @@ end
 
 Instance.refillAmmo = function(firearm_data, ammo_id, count)
     MagI.refillAmmo(firearm_data.magazine_data, ammo_id, count)
-    --firearm_data.current_capacity = count
-    --firearm_data.loaded_ammo_id = ammo_id
 end
 
 -- Chamber, or current cylinder position
 Instance.setAmmoChambered = function(firearm_data, ammo_id)
     if firearm_data.cylinder_position then
         MagI.setAmmoAtPosition(firearm_data.magazine_data, firearm_data.cylinder_position, ammo_id)
-        --firearm_data.magazine_contents[firearm_data.cylinder_position] = ammo_id
         return
     end
     firearm_data.chambered_id = ammo_id
@@ -204,7 +238,6 @@ end
 Instance.getAmmoChambered = function(firearm_data)
     if firearm_data.cylinder_position then
         return MagI.getAmmoAtPosition(firearm_data.magazine_data, firearm_data.cylinder_position)
-        --return firearm_data.magazine_contents[firearm_data.cylinder_position]
     end
     return firearm_data.chambered_id
 end
@@ -217,7 +250,6 @@ end
 Instance.delAmmoChambered = function(firearm_data)
     if firearm_data.cylinder_position then
         delAmmoAtPosition(firearm_data.magazine_data, firearm_data.cylinder_position)
-        -- firearm_data.magazine_contents[firearm_data.cylinder_position] = nil
     end
     firearm_data.chambered_id = nil
 end

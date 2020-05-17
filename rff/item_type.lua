@@ -61,6 +61,7 @@ local copyPropertiesTable = function(logPrefix, properties, source, destination)
         destination[propName] = value
         if validType == 'integer' or validType == 'float' then validType = 'number' end
         local wasNil = value == nil
+        -- TODO: fix non-required numbers that aren't set and without defaults from throwing. 
         if type(value) ~= validType then -- wrong type
             if wasNil and options.required then
                 Logger.error(logPrefix .. " property " .. propName .. " is invalid type (value "..tostring(value).." should be type "..options.type.."). Setting to default "..tostring(options.default))

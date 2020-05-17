@@ -312,6 +312,12 @@ Stats.calculateMechanicalRecoil = function(firearm_data)
         Free recoil has its drawbacks for our use. It doesn't factor recoil from escaping gas 
         (shorter barrel = lower velocity = lower recoil)
         
+        alternate computation
+        W1 = weight of bullet in pounds, (grains divided by 7000 equals pounds)
+        W2 = weight of powder charge in pounds.
+        Wg = weight of gun in pounds.
+        Vp = muzzle velocity of bullet in feet per second.
+        ft_lbs = ((W1 * Vp + 4700 * W2) ^2) / (64.348 * Wg)
     ]]
     return 0
 end

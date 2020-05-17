@@ -17,13 +17,13 @@ local Logger = require(ENV_RFF_PATH .. "interface/logger")
 
 
 -- local tables 
-local Options = {}
-local Settings = {}
+local Options = { }
+local Settings = { }
 
--- LogLevel: This controls how much text ORGM prints to the console and log file.
+-- LogLevel: This controls how much text RFF prints to the console and log file.
 -- valid options are Const.ERROR, Const.WARN, Const.INFO, Const.DEBUG, Const.VERBOSE (default Const.INFO)
 -- NOTE: the logging level setting is messy business, since we need to manually copy it over to the Logger table.
-Options.LogLevel = {type='integer', min=0, max=4, default=Const.VERBOSE}
+Options.LogLevel = {type='integer', min=0, max=4, default=Const.INFO}
 Settings.LogLevel = Options.LogLevel.default
 Logger.level = Options.LogLevel.default
 
