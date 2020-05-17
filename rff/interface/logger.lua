@@ -2,7 +2,7 @@ local Logger = {}
 
 local Const = require(ENV_RFF_PATH .. "constants")
 
-Logger.level = 0
+Logger.level = 2 -- default value, just incase it doesnt get set
 --[[- Basic logging function.
 
 By default prints a message to stdout if Logger.level is equal or less then the level arguement.
