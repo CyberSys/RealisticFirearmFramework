@@ -8,7 +8,7 @@
 ]]
 -- best not to assume our module path is in a standard spot, so check for a global env constant
 if not ENV_RFF_PATH then
-    ENV_RFF_PATH = ""
+    ENV_RFF_PATH = "rff/"
 end
 
 local RFF = { }
@@ -23,6 +23,8 @@ RFF.ItemType = require(ENV_RFF_PATH .. "item_type")
 RFF.Ammo = require(ENV_RFF_PATH .. "ammo/init")
 --RFF.AmmoGroup = require(ENV_RFF_PATH .. "ammo/group")
 --RFF.AmmoType = require(ENV_RFF_PATH .. "ammo/type")
+
+RFF.Magazine = require(ENV_RFF_PATH .. "magazine/init") 
 
 RFF.Firearm = require(ENV_RFF_PATH .. "firearm/init")
 --RFF.FirearmGroup = require(ENV_RFF_PATH .. "firearm/group")
